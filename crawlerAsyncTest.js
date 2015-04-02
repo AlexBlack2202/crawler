@@ -1,21 +1,16 @@
 /**
  * Created by tienn2t on 3/31/15.
  */
-var Crawler = require('crawler');
-var mysql   = require('mysql');
-var slug    = require('slug');
-var async   = require('async');
-var webtruyen = require('./webtruyen');
+var Crawler         = require('crawler');
+var mysql           = require('mysql');
+var slug            = require('slug');
+var async           = require('async');
+var webtruyen       = require('./webtruyen');
+var configuration   = require('./configuration');
 
 
 
-var connection = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    password : 'root',
-    database : 'story',
-    'charset': 'utf8_general_ci'
-});
+var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 
 connection.connect(function(error){
     if(error){
@@ -27,7 +22,7 @@ connection.connect(function(error){
 
 
 //get status pending to crawler
-connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND status="pending" LIMIT 1', function(err, rows) {
+connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND status="pending" LIMIT 2', function(err, rows) {
     // connected! (unless `err` is set)
     if(err){
         console.error("Get data error: ", err.stack);
@@ -65,6 +60,8 @@ connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND st
                 getData(row, page, table);
             }
 
+            connection.end();
+
 
         });
         return cb(null);
@@ -75,6 +72,7 @@ connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND st
 });
 
 function getData(row, page, table, totalPage){
+    var conn = mysql.createConnection(configuration.MYSQL_CONFIG);
 
     var c = new Crawler({
         'maxConnections':10,
@@ -106,7 +104,7 @@ function getData(row, page, table, totalPage){
 
             updateSql = 'UPDATE story SET ? WHERE ?';
 
-            connection.query(
+            conn.query(
                 updateSql,
                 [
                     {
@@ -130,7 +128,7 @@ function getData(row, page, table, totalPage){
                     }
 
                     //dong ket noi
-                    connection.end();
+                    conn.end();
                     console.log('Da dong ket noi');
 
                 }

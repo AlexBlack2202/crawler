@@ -6,6 +6,7 @@ var mysql   = require('mysql');
 var slug    = require('slug');
 var fs      = require('fs');
 var async   = require('async');
+var configuration   = require('./configuration');
 
 /**
  *
@@ -77,13 +78,7 @@ function crawlerChapter(chapterInfo,cb){
         'callback':function(error,result,$){}
     });
 
-    var connection = mysql.createConnection({
-        host     : 'localhost',
-        user     : 'root',
-        password : 'root',
-        database : 'story',
-        'charset': 'utf8_general_ci'
-    });
+    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 
     c.queue([{
         "uri":chapterInfo.chapter_link,
