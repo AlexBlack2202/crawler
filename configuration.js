@@ -10,4 +10,7 @@ var MYSQL_CONFIG = {
     'charset': 'utf8_general_ci'
 };
 
+var NUMBER_OF_STORY = 5;
+
 exports.MYSQL_CONFIG = MYSQL_CONFIG;
+exports.NUMBER_OF_STORY = NUMBER_OF_STORY;

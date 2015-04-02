@@ -22,14 +22,14 @@ connection.connect(function(error){
 
 
 //get status pending to crawler
-connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND status="pending" LIMIT 2', function(err, rows) {
+connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND status="pending" LIMIT '+configuration.NUMBER_OF_STORY, function(err, rows) {
     // connected! (unless `err` is set)
     if(err){
         console.error("Get data error: ", err.stack);
         return;
     }
     console.log(rows);
-    async.each(rows,function(row,cb){
+    async.each(rows, function(row,cb){
         console.log(row.link);
         page = row.page;
         title = row.story_slug;
@@ -37,30 +37,37 @@ connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND st
 
         console.log(table);
 
-        connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+table+'"', function(err,results){
+        connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+row.story_slug.substr(0,2)+'_story'+'"', function(err,results){
             //tao table neu chua ton tai
             if(results[0].is_table==0){
-                createTable = "CREATE TABLE IF NOT EXISTS "+table+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
+                createTable = "CREATE TABLE IF NOT EXISTS "+row.story_slug.substr(0,2)+'_story'+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
                     "story_id int(11) NOT NULL,chapter_name text NOT NULL,chapter text NOT NULL, " +
                     "update_time varchar(30) NOT NULL, story_name text NOT NULL,chapter_number int(11), link text NOT NULL, " +
                     "content text NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
 
                 connection.query(createTable,function(err,results){
                     if(err){
-                        console.log('Create table ',table, 'failed!');
-                        return cb(null);
+                        console.log('Create table ',row.story_slug.substr(0,2)+'_story', 'failed!');
                     }
                     //get data
-                    console.log('Create table ',table, 'successful');
-                    getData(row, page, table);
+                    console.log('Create table ',row.story_slug.substr(0,2)+'_story', 'successful');
+                    getData(row, page, row.story_slug.substr(0,2)+'_story');
+
+                    //dong connection khi ca den phan tu cuoi cung
+                    if(rows.indexOf(row) == (rows.length-1)){
+                        connection.end();
+                    }
 
                 });
 
             }else{
-                getData(row, page, table);
+                getData(row, page, row.story_slug.substr(0,2)+'_story');
+                if(rows.indexOf(row) == (rows.length-1)){
+                    connection.end();
+                }
             }
 
-            connection.end();
+
 
 
         });
