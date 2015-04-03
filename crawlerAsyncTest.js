@@ -9,74 +9,74 @@ var webtruyen       = require('./webtruyen');
 var configuration   = require('./configuration');
 
 
+function run(){
+    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 
-var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+    connection.connect(function(error){
+        if(error){
+            console.log('error connecting: ',error.stack);
+            return;
+        }
+        console.log('Connected mysql db');
+    });
 
-connection.connect(function(error){
-    if(error){
-        console.log('error connecting: ',error.stack);
-        return;
-    }
-    console.log('Connected mysql db');
-});
+    //get status pending to crawler
+    connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND status="pending" LIMIT '+configuration.NUMBER_OF_STORY, function(err, rows) {
+        // connected! (unless `err` is set)
+        if(err){
+            console.error("Get data error: ", err.stack);
+            return;
+        }
+        console.log(rows);
+        async.each(rows, function(row,cb){
+            console.log(row.link);
+            page = row.page;
+            title = row.story_slug;
+            table = title.substr(0,2)+'_story';
 
+            console.log(table);
 
-//get status pending to crawler
-connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND status="pending" LIMIT '+configuration.NUMBER_OF_STORY, function(err, rows) {
-    // connected! (unless `err` is set)
-    if(err){
-        console.error("Get data error: ", err.stack);
-        return;
-    }
-    console.log(rows);
-    async.each(rows, function(row,cb){
-        console.log(row.link);
-        page = row.page;
-        title = row.story_slug;
-        table = title.substr(0,2)+'_story';
+            connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+row.story_slug.substr(0,2)+'_story'+'"', function(err,results){
+                //tao table neu chua ton tai
+                if(results[0].is_table==0){
+                    createTable = "CREATE TABLE IF NOT EXISTS "+row.story_slug.substr(0,2)+'_story'+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
+                        "story_id int(11) NOT NULL,chapter_name text NOT NULL,chapter text NOT NULL, " +
+                        "update_time varchar(30) NOT NULL, story_name text NOT NULL,chapter_number int(11), link text NOT NULL, " +
+                        "content text NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
 
-        console.log(table);
+                    connection.query(createTable,function(err,results){
+                        if(err){
+                            console.log('Create table ',row.story_slug.substr(0,2)+'_story', 'failed!');
+                        }
+                        //get data
+                        console.log('Create table ',row.story_slug.substr(0,2)+'_story', 'successful');
+                        getData(row, page, row.story_slug.substr(0,2)+'_story');
 
-        connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+row.story_slug.substr(0,2)+'_story'+'"', function(err,results){
-            //tao table neu chua ton tai
-            if(results[0].is_table==0){
-                createTable = "CREATE TABLE IF NOT EXISTS "+row.story_slug.substr(0,2)+'_story'+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
-                    "story_id int(11) NOT NULL,chapter_name text NOT NULL,chapter text NOT NULL, " +
-                    "update_time varchar(30) NOT NULL, story_name text NOT NULL,chapter_number int(11), link text NOT NULL, " +
-                    "content text NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
+                        //dong connection khi ca den phan tu cuoi cung
+                        if(rows.indexOf(row) == (rows.length-1)){
+                            connection.end();
+                        }
 
-                connection.query(createTable,function(err,results){
-                    if(err){
-                        console.log('Create table ',row.story_slug.substr(0,2)+'_story', 'failed!');
-                    }
-                    //get data
-                    console.log('Create table ',row.story_slug.substr(0,2)+'_story', 'successful');
+                    });
+
+                }else{
                     getData(row, page, row.story_slug.substr(0,2)+'_story');
-
-                    //dong connection khi ca den phan tu cuoi cung
                     if(rows.indexOf(row) == (rows.length-1)){
                         connection.end();
                     }
-
-                });
-
-            }else{
-                getData(row, page, row.story_slug.substr(0,2)+'_story');
-                if(rows.indexOf(row) == (rows.length-1)){
-                    connection.end();
                 }
-            }
 
 
 
 
+            });
+            return cb(null);
+        }, function(error){
+            console.log('FINISHED!!');//dong ket noi
         });
-        return cb(null);
-    }, function(error){
-        console.log('FINISHED!!');//dong ket noi
-    });
 
-});
+    });
+}
 
 function getData(row, page, table, totalPage){
     var conn = mysql.createConnection(configuration.MYSQL_CONFIG);
@@ -102,7 +102,7 @@ function getData(row, page, table, totalPage){
 
             //cap nhat truyen
             author = $('div.contdetail span.author').text();
-            source = $('div.contdetail span.type').text();
+            source = $('div.contdetail span.type').eq(1).text();
             status = $('div.contdetail span.status').text();
             short_description = $('.mota').html();
             total_view = parseInt($('div.contdetail span.view').text().match(reg)[0]);
@@ -145,6 +145,7 @@ function getData(row, page, table, totalPage){
 
             for(var i=1;i<=totalPage;i++){
                 pageList[i] = {
+                    'totalPage'     :totalPage,
                     'story_id'      : row.id,
                     'story_name'    : row.title,
                     'story_slug'    : row.story_slug,
@@ -166,3 +167,6 @@ function getData(row, page, table, totalPage){
         }
     }]);
 }
+
+
+exports.run = run;

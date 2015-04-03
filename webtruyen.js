@@ -7,12 +7,17 @@ var slug    = require('slug');
 var fs      = require('fs');
 var async   = require('async');
 var configuration   = require('./configuration');
+var process = require('./crawlerAsyncTest');
 
 /**
  *
  * @param url
  * @param done
  */
+
+var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var trData = [];
+var totalPage = 0;
 
 function crawlerPage(pageInfo, done){
     var c = new Crawler({
@@ -28,7 +33,10 @@ function crawlerPage(pageInfo, done){
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            trData = [];
+            if(pageInfo.page == pageInfo.totalPage){
+                totalPage = (pageInfo.totalPage-1)*50+$('div.gridlistchapter tr').length;
+            }
+
             $('div.gridlistchapter tr').each(function(index,tr){
 
                 if(index==0){
@@ -51,7 +59,6 @@ function crawlerPage(pageInfo, done){
                 };
 
             });
-
             /*fs.writeFile('logs/page_'+pageInfo.page,JSON.stringify(trData),function(err){
                 if(err){
                     console.log('GHI FILE LOI');
@@ -78,7 +85,7 @@ function crawlerChapter(chapterInfo,cb){
         'callback':function(error,result,$){}
     });
 
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+
 
     c.queue([{
         "uri":chapterInfo.chapter_link,
@@ -101,11 +108,23 @@ function crawlerChapter(chapterInfo,cb){
 
             connection.query(insertSQL,insertData,function(err,resultInsert){
                 if(err){
-                    console.log('Error insert chapter table');
+                    console.log('Error insert chapter table', err);
+                    process.kill(1);
                     return;
                 }
-                console.log('Success insert chapter: ',chapterInfo.chapter,' - ', chapterInfo.chapter_name);
-                connection.end();
+
+                console.log('Success insert chapter: ',chapterInfo.chapter,' - ', chapterInfo.chapter_name,
+                    'processing index:',chapterInfo.chapter_number,' of:',totalPage);
+
+
+                if(chapterInfo.chapter_number == (totalPage-1)){
+                    console.log('Het rui dong ket noi cuoi cung');
+                    //connection.end();
+
+                    //setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
+                    setTimeout(process.run, 30000);
+
+                }
             });
         }
     }]);

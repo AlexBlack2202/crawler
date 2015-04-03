@@ -9,8 +9,16 @@ var MYSQL_CONFIG = {
     database : 'story',
     'charset': 'utf8_general_ci'
 };
+var MYSQL_HOST_CONFIG = {
+    host     : '192.254.186.185',
+    user     : 'tienn2t_story',
+    password : 'Tienn2t',
+    database : 'tienn2t_story',
+    'charset': 'utf8_general_ci'
+};
 
-var NUMBER_OF_STORY = 5;
+var NUMBER_OF_STORY = 1;
 
 exports.MYSQL_CONFIG = MYSQL_CONFIG;
+//exports.MYSQL_CONFIG = MYSQL_HOST_CONFIG;
 exports.NUMBER_OF_STORY = NUMBER_OF_STORY;
