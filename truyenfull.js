@@ -15,7 +15,7 @@ var process = require('./crawlerAsyncTest');
  * @param done
  */
 
-//var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 var trData = [];
 var totalPage = 0;
 
@@ -45,11 +45,12 @@ function crawlerPage(pageInfo){
                     'story_id'  : pageInfo.story_id,
                     'story_slug': pageInfo.story_slug,
                     'story_name'    : pageInfo.story_name,
-                    'chapter_link': link
+                    'chapter_link': link,
+                    'table':pageInfo.table
                 };
 
             });
-            console.log(trData);
+            //console.log(trData);
             async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
 
@@ -67,24 +68,18 @@ function crawlerChapter(chapterInfo){
         'forceUTF8': true,
         'callback':function(error,result,$){}
     });
-
-
-
+    console.log(chapterInfo.chapter_link);
     c.queue([{
         "uri":chapterInfo.chapter_link,
-        "callback":function(error,result_chapter, $) {
-
+        "callback":function(error,result, $) {
             insertData = {
-                'story_id'      : chapterInfo.story_id,
+                'chapter_number'    : chapterInfo.chapter_number,
+                'chapter_name'       : chapterInfo.chapter_name,
+                'chapter_slug'  : chapterInfo.chapter_slug,
+                'story_id'  : chapterInfo.story_id,
+                'story_slug': chapterInfo.story_slug,
                 'story_name'    : chapterInfo.story_name,
-                'chapter'       : chapterInfo.chapter,
-                'chapter_name'  : chapterInfo.chapter_name,
-                'chapter_number': chapterInfo.chapter_number,
-                'link'          : chapterInfo.chapter_link,
-                'update_time'   : chapterInfo.update_time,
-                'content'       : $('div#detailcontent').html(),
-                'story_slug'    : chapterInfo.story_slug,
-                'chapter_slug'  : slug(chapterInfo.chapter_name)
+                'content'       : $('div.chapter-content').html(),
             };
 
             insertSQL = 'INSERT INTO '+chapterInfo.table+' SET ?';
@@ -97,7 +92,7 @@ function crawlerChapter(chapterInfo){
                 }
 
                 console.log('Success insert chapter: ',chapterInfo.chapter,' - ', chapterInfo.chapter_name,
-                    'processing index:',chapterInfo.chapter_number,' of:',totalPage);
+                    'processing index:',chapterInfo.chapter_number);
 
 
                 if(chapterInfo.chapter_number == (totalPage-1)){
@@ -119,7 +114,8 @@ var pageInfo  = {
     'story_name':'Vũ cực thiên hạ',
     'story_slug': 'vu-cuc-thien-ha',
     'page':1,
-    'totalPage':10
+    'totalPage':10,
+    'table':'kh_story'
 };
 
 crawlerPage(pageInfo);
