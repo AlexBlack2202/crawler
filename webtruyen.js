@@ -34,23 +34,24 @@ function crawlerPage(pageInfo, done){
             reg = /[\d]+$/;
 
             if(pageInfo.page == pageInfo.totalPage){
-                totalPage = (pageInfo.totalPage-1)*50+$('div.gridlistchapter tr').length;
+                totalPage = (pageInfo.totalPage-1)*30+$('div.pagination li').length;
             }
+		console.log("total page "+pageInfo.page+" la:",$('div.gridlistchapter li').length);
 
-            $('div.gridlistchapter tr').each(function(index,tr){
+            $('div.gridlistchapter li').each(function(index,tr){
 
                 if(index==0){
                     return;
                 }
                 //call chapter
-                td = $(tr).find('td');
+                td = $(tr).find('span');
 
                 trData[index] = {
                     'numberPage'    : pageInfo.page,
                     'chapter'       : $(td).eq(2).text(),
                     'chapter_link'  : $(td).find('a').attr('href'),
-                    'chapter_name'  : $(td).eq(3).text(),
-                    'chapter_number': (pageInfo.page-1)*50+parseInt($(td).eq(0).text()),
+                    'chapter_name'  : $(td).eq(1).text()+" - "+$(td).eq(3).text(),
+                    'chapter_number': (pageInfo.page-1)*30+parseInt($(td).eq(0).text()),
                     'story_id'      : pageInfo.story_id,
                     'story_name'    : pageInfo.story_name,
                     'update_time'   : $(td).eq(4).text(),
@@ -66,6 +67,7 @@ function crawlerPage(pageInfo, done){
                     console.log('GHI FILE THANH CONG: '+pageInfo.page);
                 }
             });*/
+	    //console.log(trData);
 
             async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
@@ -109,12 +111,12 @@ function crawlerChapter(chapterInfo,cb){
             connection.query(insertSQL,insertData,function(err,resultInsert){
                 if(err){
                     console.log('Error insert chapter table', err);
-                    process.kill(1);
-                    return;
+                    //process.kill(1);
+                    //return;
                 }
 
-                console.log('Success insert chapter: ',chapterInfo.chapter,' - ', chapterInfo.chapter_name,
-                    'processing index:',chapterInfo.chapter_number,' of:',totalPage);
+                //console.log('Success insert chapter: ',chapterInfo.chapter,' - ', chapterInfo.chapter_name,
+                //    'processing index:',chapterInfo.chapter_number,' of:',totalPage);
 
 
                 if(chapterInfo.chapter_number == (totalPage-1)){
