@@ -119,14 +119,13 @@ function crawlerChapter(chapterInfo,cb){
                 //    'processing index:',chapterInfo.chapter_number,' of:',totalPage);
 
 
-                if(chapterInfo.chapter_number == (totalPage-1)){
+                /*if(chapterInfo.chapter_number == (totalPage-1)){
                     console.log('Het rui dong ket noi cuoi cung');
                     //connection.end();
 
-                    //setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
-                    setTimeout(process.run, 30000);
+                    setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
 
-                }
+                }*/
             });
         }
     }]);
