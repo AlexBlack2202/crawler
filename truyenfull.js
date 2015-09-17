@@ -30,34 +30,32 @@ function crawlerPage(pageInfo){
     c.queue([{
         'uri':pageInfo.url,
         'callback':function(error,result,$){
-            console.log($);
 
             //lay ra tong so trang
             reg = /[\d]+$/;
 
             $('ul.list-chapter li').each(function(index,li){
 
-                if(index==0){
-                    return;
-                }
                 link = $(li).find('a').eq(0).attr('href');
+                name = $(li).find('a').eq(0).text();
                 trData[index] = {
-                    'chapter_number'    : (pageInfo.page-1)*50+index,
-                    'chapter_name'       : $(li).find('a').eq(0).text(),
-                    'chapter_slug'  : link.replace('http://truyenfull.vn',''),
+                    'chapter_number'    : (pageInfo.page-1)*50+index+1,
+                    'chapter_name'       : name,
+                    'chapter_slug'  : slug(name),//link.replace('http://truyenfull.vn',''),
                     'story_id'  : pageInfo.story_id,
                     'story_slug': pageInfo.story_slug,
-                    'story_name'    : pageInfo.story_name
+                    'story_name'    : pageInfo.story_name,
+                    'chapter_link': link
                 };
 
             });
             console.log(trData);
-            /*async.each(trData, function(chapterInfo,cbChapter){
+            async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
 
             }, function(err){
                 //console.log("");
-            });*/
+            });
 
         }
     }]);
