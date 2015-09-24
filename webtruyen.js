@@ -45,12 +45,18 @@ function crawlerPage(pageInfo, done){
                 }
                 //call chapter
                 td = $(tr).find('span');
+                var book = $(tr).find('.spanbook');
+                if(book == null ||book=='' ||book==undefined){
+                    var chapter_name =  $(td).eq(1).text();
+                }else{
+                   var chapter_name =  $(td).eq(1).text()+" - "+$(td).eq(3).text();
+                }
 
                 trData[index] = {
                     'numberPage'    : pageInfo.page,
                     'chapter'       : $(td).eq(2).text(),
                     'chapter_link'  : $(td).find('a').attr('href'),
-                    'chapter_name'  : $(td).eq(1).text()+" - "+$(td).eq(3).text(),
+                    'chapter_name'  : chapter_name,
                     'chapter_number': (pageInfo.page-1)*30+parseInt($(td).eq(0).text()),
                     'story_id'      : pageInfo.story_id,
                     'story_name'    : pageInfo.story_name,

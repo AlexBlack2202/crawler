@@ -23,13 +23,13 @@ function run(){
 
     //get status pending to crawler
     connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND ' +
-        'link="http://webtruyen.com/song-sinh/"', function(err, rows) {
+        'link="http://webtruyen.com/giao-dich-danh-mat-trai-tim-cua-trum-xa-hoi-den/"', function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
             console.error("Get data error: ", err.stack);
             return;
         }
-        console.log(rows);
+        //console.log(rows);
         if(rows.length==0){
             console.log('Khong co du lieu nao!');
             connection.end();
@@ -41,15 +41,15 @@ function run(){
             title = row.story_slug;
             table = title.substr(0,2)+'_story';
 
-            console.log(table);
+            console.log(table+"-"+page);
 
             connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+row.story_slug.substr(0,2)+'_story'+'"', function(err,results){
                 //tao table neu chua ton tai
                 if(results[0].is_table==0){
                     createTable = "CREATE TABLE IF NOT EXISTS "+row.story_slug.substr(0,2)+'_story'+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
                         "story_id int(11) NOT NULL,chapter_name text NOT NULL,chapter text NOT NULL, " +
-                        "update_time varchar(30) NOT NULL, story_name text NOT NULL,chapter_number int(11), link text NOT NULL, " +
-                        "content text NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
+                        "update_time varchar(30) NOT NULL, story_name text NOT NULL,chapter_number int(11) NOT NULL UNIQUE, link text NOT NULL, " +
+                        "content longtext NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
 
                     connection.query(createTable,function(err,results){
                         if(err){
@@ -79,7 +79,7 @@ function run(){
             });
             return cb(null);
         }, function(error){
-            console.log('FINISHED!!');//dong ket noi
+            console.log('FINISHED!!',error);//dong ket noi
         });
 
     });
@@ -98,6 +98,7 @@ function getData(row, page, table, totalPage){
     if(totalPage==='undefined'){
         totalPage = 0;
     }
+	//console.log(row);
 
     c.queue([{
         'uri':row.link+'/'+page+'/',
@@ -114,7 +115,7 @@ function getData(row, page, table, totalPage){
             short_description = $('.mota').html();
             total_view = parseInt($('div.contdetail span.view').text().match(reg)[0]);
 
-            console.log(total_view);
+            console.log("total view:",total_view);
 
             updateSql = 'UPDATE story SET ? WHERE ?';
 

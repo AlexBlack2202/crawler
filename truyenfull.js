@@ -17,7 +17,6 @@ var process = require('./crawlerAsyncTest');
 
 var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 var trData = [];
-var totalPage = 0;
 
 function crawlerPage(pageInfo){
     var c = new Crawler({
@@ -62,16 +61,18 @@ function crawlerPage(pageInfo){
     }]);
 }
 
-function crawlerChapter(chapterInfo){
+function crawlerChapter(chapterInfo) {
     var c = new Crawler({
-        'maxConnections':10,
+        'maxConnections': 10,
         'forceUTF8': true,
-        'callback':function(error,result,$){}
+        'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
+        'callback': function (error, result, $) {
+        }
     });
-    console.log(chapterInfo.chapter_link);
     c.queue([{
-        "uri":chapterInfo.chapter_link,
-        "callback":function(error,result, $) {
+        'uri': chapterInfo.chapter_link,
+        'callback': function (error, result, $) {
+            var content = $('div.chapter-content').html();
             insertData = {
                 'chapter_number'    : chapterInfo.chapter_number,
                 'chapter_name'       : chapterInfo.chapter_name,
@@ -79,46 +80,55 @@ function crawlerChapter(chapterInfo){
                 'story_id'  : chapterInfo.story_id,
                 'story_slug': chapterInfo.story_slug,
                 'story_name'    : chapterInfo.story_name,
-                'content'       : $('div.chapter-content').html(),
+                'content'       : content,
             };
-
             insertSQL = 'INSERT INTO '+chapterInfo.table+' SET ?';
 
             connection.query(insertSQL,insertData,function(err,resultInsert){
                 if(err){
                     console.log('Error insert chapter table', err);
-                    process.kill(1);
-                    return;
+                    //process.kill(1);
+                    //return;
                 }
 
-                console.log('Success insert chapter: ',chapterInfo.chapter,' - ', chapterInfo.chapter_name,
+                console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
                     'processing index:',chapterInfo.chapter_number);
 
 
-                if(chapterInfo.chapter_number == (totalPage-1)){
+                /*if(chapterInfo.chapter_number == (totalPage-1)){
                     console.log('Het rui dong ket noi cuoi cung');
                     //connection.end();
 
-                    //setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
-                    setTimeout(process.run, 30000);
+                    setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
+                    //setTimeout(process.run, 30000);
 
-                }
+                }*/
             });
         }
+
     }]);
 }
 
-var pageInfo  = {
-    'url': 'http://truyenfull.vn/vu-cuc-thien-ha/trang-1/#list-chapter',
-    'story_id': 1,
-    'story_name':'Vũ cực thiên hạ',
-    'story_slug': 'vu-cuc-thien-ha',
-    'page':1,
-    'totalPage':10,
-    'table':'kh_story'
-};
+/*var chapters = [];
+for(var i=1;i<=54;i++) {
+    var pageInfo  = {
+        'url': 'http://truyenfull.vn/truyen-than-khong-thien-ha/trang-'+i+'/#list-chapter',
+        'story_id': 1,
+        'story_name':'Thần khổng thiên hạ',
+        'story_slug': 'than-khong-thien-ha',
+        'page':i,
+        'totalPage':54,
+        'table':'th'
+    };
+    chapters.push(crawlerPage(pageInfo));
+}
+/!*async.each(chapters,function(pageInfo,cb){
+    crawlerPage(pageInfo);
+},function(error){});*!/
 
-crawlerPage(pageInfo);
+async.parallel(chapters,function(){
+    console.log('ket thuc');
+});*/
 
 exports.crawlerPage = crawlerPage;
 exports.crawlerChapter = crawlerChapter;
