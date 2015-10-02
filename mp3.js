@@ -70,11 +70,6 @@ function crawlerLyric(songObj){
     });
 }
 
-var songObj = {
-    fileName: 'vo-nguoi-ta.lrc',
-    link:'http://mp3.zing.vn/bai-hat/V-Ng-i-Ta-Phan-M-nh-Qu-nh/ZW7WBZBI.html',
-    xmlLink:'',
-    lyricLink:''
-}
 
-getXmlUrl(songObj);
+
+exports.getXmlUrl = getXmlUrl;
