@@ -8,7 +8,7 @@ var fs      = require('fs');
 var async   = require('async');
 var http    = require('http');
 var mp3     = require('./mp3');
-var fs = require('fs');
+var fs      = require('fs');
 var configuration   = require('./configuration');
 
 function getMp3Link(link) {

@@ -10,7 +10,7 @@ var slug    = require('slug');
 var fs      = require('fs');
 var async   = require('async');
 var http    = require('http');
-var fs = require('fs');
+var fs      = require('fs');
 var configuration   = require('./configuration');
 
 function getXmlUrl(songObj) {
