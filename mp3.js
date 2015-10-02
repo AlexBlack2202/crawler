@@ -50,7 +50,7 @@ function getLyricLink(songObj){
     c.queue([{
         'uri':songObj.xmlLink,
         'callback':function(error,result,$){
-            console.log($.xml());
+            //console.log($.xml());
             var content = $.xml();
             var matches = content.match(/http:\/\/static\.mp3\.zdn\.vn[\w\d\.\-_\/]*/g);
             if(matches!=null) {
