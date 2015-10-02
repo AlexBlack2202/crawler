@@ -17,6 +17,7 @@ var process = require('./crawlerAsyncTest');
 
 var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 var trData = [];
+var totalPage = 0;
 
 function crawlerPage(pageInfo){
     var c = new Crawler({
@@ -33,29 +34,29 @@ function crawlerPage(pageInfo){
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            $('ul.list-chapter li').each(function(index,li){
+            $('ul.list-truyen .row').each(function(index,div){
 
                 link = $(li).find('a').eq(0).attr('href');
                 name = $(li).find('a').eq(0).text();
                 trData[index] = {
-                    'chapter_number'    : (pageInfo.page-1)*50+index+1,
-                    'chapter_name'       : name,
-                    'chapter_slug'  : slug(name),//link.replace('http://truyenfull.vn',''),
-                    'story_id'  : pageInfo.story_id,
+                    'category_name'    : pageInfo.category_name,
+                    'category_id'       : pageInfo.category_id,
+                    'category_slug'  : pageInfo.category_slug,
+                    'story_name'  : $(div).find('.truyen-title a').text(),
                     'story_slug': pageInfo.story_slug,
-                    'story_name'    : pageInfo.story_name,
-                    'chapter_link': link,
-                    'table':pageInfo.table
+                    'img_xs'    : $(div).find('img.visible-xs-block').attr('src'),
+                    'img_sm'    : $(div).find('img.visible-sm-block').attr('src'),
+                    'chapter_link': $(div).find('.truyen-title a').attr('href')
                 };
 
             });
-            //console.log(trData);
-            async.each(trData, function(chapterInfo,cbChapter){
+            console.log(trData);
+            /*async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
 
             }, function(err){
                 //console.log("");
-            });
+            });*/
 
         }
     }]);
@@ -87,8 +88,8 @@ function crawlerChapter(chapterInfo) {
             connection.query(insertSQL,insertData,function(err,resultInsert){
                 if(err){
                     console.log('Error insert chapter table', err);
-                    //process.kill(1);
-                    //return;
+                    process.kill(1);
+                    return;
                 }
 
                 console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
@@ -109,26 +110,17 @@ function crawlerChapter(chapterInfo) {
     }]);
 }
 
-/*var chapters = [];
-for(var i=1;i<=54;i++) {
-    var pageInfo  = {
-        'url': 'http://truyenfull.vn/truyen-than-khong-thien-ha/trang-'+i+'/#list-chapter',
-        'story_id': 1,
-        'story_name':'Thần khổng thiên hạ',
-        'story_slug': 'than-khong-thien-ha',
-        'page':i,
-        'totalPage':54,
-        'table':'th'
-    };
-    chapters.push(crawlerPage(pageInfo));
-}
-/!*async.each(chapters,function(pageInfo,cb){
-    crawlerPage(pageInfo);
-},function(error){});*!/
-
-async.parallel(chapters,function(){
-    console.log('ket thuc');
-});*/
+var category  = [
+    {
+    'url': 'http://truyenfull.vn/the-loai/tien-hiep/trang-1/',
+    'category_name':'Tiên Hiệp',
+    'story_slug': 'tien-hiep',
+    'page':1
+    }
+];
+async.each(category,function(info,cb){
+    crawlerPage(info);
+});
 
 exports.crawlerPage = crawlerPage;
 exports.crawlerChapter = crawlerChapter;

@@ -1,4 +1,4 @@
-//var process = require('./crawlerAsync');
-var process = require('./crawlerAsyncTest');
+var process = require('./crawlerAsync');
+//var process = require('./crawlerAsyncTest');
 
 process.run();
