@@ -47,4 +47,73 @@ function getMp3Link(link) {
     }]);
 }
 
+function getAlbumLink(link){
+    var c = new Crawler({
+        'maxConnections': 10,
+        'forceUTF8': true,
+        'callback': function (error, result, $) {
+        }
+    });
+
+    c.queue([{
+        'uri': link,
+        'callback': function (error, result, $) {
+            var data = [];
+            $('ul.playlist .fn-playlist-item .tool-song .direct').each(function (index, item) {
+                //console.log($(item).text());
+                var a = $(item).find('a').eq(0);
+                //console.log(a.attr('href')+'--'+ a.attr('title'));
+                data.push({
+                    fileName: 'album/'+slug(a.attr('title')),
+                    link:a.attr('href'),
+                    xmlLink:'',
+                    lyricLink:''
+                })
+            });
+            console.log(data);
+            if(data.length>0){
+                async.each(data, function(songObj, cbPage){
+                    mp3.getXmlUrl(songObj);
+
+                }, function(errPage){
+                    console.log('Finished page');
+                });
+            }
+        }
+    }]);
+}
+
+function album(link){
+    var c = new Crawler({
+        'maxConnections': 10,
+        'forceUTF8': true,
+        'callback': function (error, result, $) {
+        }
+    });
+
+    c.queue([{
+        'uri': link,
+        'callback': function (error, result, $) {
+            var data = [];
+            $('.tab-pane .item .thumb').each(function (index, a) {
+                //console.log($(item).text());
+                //var a = $(item).find('a').eq(0);
+                //console.log(a.attr('href')+'--'+ a.attr('title'));
+                data.push($(a).attr('href'));
+            });
+            console.log(data);
+            if(data.length>0){
+                async.each(data, function(link, cbPage){
+                    getAlbumLink(link);
+
+                }, function(errPage){
+                    console.log('Finished page');
+                });
+            }
+        }
+    }]);
+}
+
 exports.getMp3Link = getMp3Link;
+exports.getAlbumLink = getAlbumLink;
+exports.album = album;
