@@ -8,6 +8,7 @@ var fs      = require('fs');
 var async   = require('async');
 var configuration   = require('./configuration');
 var process = require('./crawlerAsyncTest');
+var http    = require('http');
 
 /**
  *
@@ -34,23 +35,24 @@ function crawlerPage(pageInfo){
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            $('ul.list-truyen .row').each(function(index,div){
+            $('.col-truyen-main div.list-truyen .row').each(function(index,div){
 
-                link = $(li).find('a').eq(0).attr('href');
-                name = $(li).find('a').eq(0).text();
+                link = $(div).find('a').eq(0).attr('href');
+                name = $(div).find('.truyen-title a').text();
                 trData[index] = {
                     'category_name'    : pageInfo.category_name,
                     'category_id'       : pageInfo.category_id,
                     'category_slug'  : pageInfo.category_slug,
-                    'story_name'  : $(div).find('.truyen-title a').text(),
-                    'story_slug': pageInfo.story_slug,
+                    'story_name':  name ,
+                    'story_slug': slug(name),
                     'img_xs'    : $(div).find('img.visible-xs-block').attr('src'),
                     'img_sm'    : $(div).find('img.visible-sm-block').attr('src'),
                     'chapter_link': $(div).find('.truyen-title a').attr('href')
                 };
-
+                crawlerImage(trData[index]);
+                return;
             });
-            console.log(trData);
+            //console.log(trData);
             /*async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
 
@@ -60,6 +62,42 @@ function crawlerPage(pageInfo){
 
         }
     }]);
+}
+
+function crawlerImage(obj){
+    console.log(obj);
+    var request = http.get(obj.img_sm, function(res) {
+        var imagedata = '';
+        res.setEncoding('binary');
+
+        res.on('data', function(chunk){
+            imagedata += chunk
+        });
+
+        res.on('end', function(){
+            fs.writeFile(obj.category_slug+'/'+obj.story_slug+'-sm.jpg', imagedata, 'binary', function(err){
+                if (err) throw err;
+                console.log('File saved.');
+            })
+        });
+    });
+    request = http.get(obj.img_xs, function(res) {
+        //response.pipe(file);
+        var imagedata = '';
+        res.setEncoding('binary');
+
+        res.on('data', function(chunk){
+            imagedata += chunk
+        });
+
+        res.on('end', function(){
+            fs.writeFile(obj.category_slug+'/'+obj.story_slug+'-xs.jpg', imagedata, 'binary', function(err){
+                if (err) throw err;
+                console.log('File saved.');
+            })
+        });
+        console.log('DONE');
+    });
 }
 
 function crawlerChapter(chapterInfo) {
@@ -114,8 +152,9 @@ var category  = [
     {
     'url': 'http://truyenfull.vn/the-loai/tien-hiep/trang-1/',
     'category_name':'Tiên Hiệp',
+    'category_slug':'tien-hiep',
     'story_slug': 'tien-hiep',
-    'page':1
+    'page':1,
     }
 ];
 async.each(category,function(info,cb){
