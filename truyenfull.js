@@ -1,254 +1,134 @@
 /**
- * Created by tienn2t on 3/31/15.
+ * Created by tienn2t on 4/2/15.
  */
-var Crawler         = require('crawler');
-var mysql           = require('mysql');
-var slug            = require('slug');
-var async           = require('async');
-var truyenfull       = require('./truyenfull');
-var configuration   = require('./configuration');
-var http    = require('http');
+var Crawler = require('crawler');
+var mysql   = require('mysql');
+var slug    = require('slug');
 var fs      = require('fs');
+var async   = require('async');
+var configuration   = require('./configuration');
+var process = require('./crawlerAsyncTest');
 
+/**
+ *
+ * @param url
+ * @param done
+ */
 
-function run(){
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var trData = [];
 
-    connection.connect(function(error){
-        if(error){
-            console.log('error connecting: ',error.stack);
-            return;
-        }
-        console.log('Connected mysql db');
-    });
-
-
-    //get status pending to crawler
-    connection.query('SELECT * from story WHERE ' +
-        'link="http://truyenfull.vn/dan-tu/"', function(err, rows) {
-        // connected! (unless `err` is set)
-        if(err){
-            console.error("Get data error: ", err.stack);
-            return;
-        }
-        //console.log(rows);
-        if(rows.length==0){
-            console.log('Khong co du lieu nao!');
-            connection.end();
-            return;
-        }
-        async.each(rows, function(row,cb){
-            console.log(row.link);
-            page = row.page;
-            title = row.story_slug;
-            table = 'chapter_'+row.story_slug.substr(0,2);
-
-            console.log(table+"-"+page);
-
-            connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+table+'"', function(err,results){
-                //tao table neu chua ton tai
-                if(results[0].is_table==0){
-                    getStoryInfo(row);
-                    createTable = "CREATE TABLE IF NOT EXISTS "+table+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
-                        "story_id int(11) NOT NULL,chapter_name text NOT NULL, " +
-                        "`time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, story_name text NOT NULL,chapter_number int(11) NOT NULL, link text NOT NULL, " +
-                        "content long text NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
-
-                    connection.query(createTable,function(err,results){
-                        if(err){
-                            console.log('Create table ',table, 'failed!');
-                        }
-                        //get data
-                        console.log('Create table ',table+'_full', 'successful');
-                        //getData(row, page, table);
-
-                        //dong connection khi ca den phan tu cuoi cung
-                        if(rows.indexOf(row) == (rows.length-1)){
-                            connection.end();
-                        }
-
-                    });
-
-                }else{
-                    //getData(row, page,table);
-                    if(rows.indexOf(row) == (rows.length-1)){
-                        connection.end();
-                    }
-                }
-
-
-
-
-            });
-            return cb(null);
-        }, function(error){
-            console.log('FINISHED!!',error);//dong ket noi
-        });
-
-    });
-}
-
-function getStoryInfo(obj){
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
-
-    connection.connect(function(error){
-        if(error){
-            console.log('error connecting: ',error.stack);
-            return;
-        }
-        console.log('Connected mysql db');
-    });
+function crawlerPage(pageInfo){
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
         'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
         'callback':function(error,result,$){}
     });
+    console.log(pageInfo);
     c.queue([{
-        'uri':obj.link,
+        'uri':pageInfo.url,
         'callback':function(error,result,$){
 
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            $('.col-truyen-main').each(function(index,div){
-                var infoHolder = $(div).find('.info-holder');
-                var image = infoHolder.find('.book img').attr('src');
-                var request = http.get(image, function(res) {
-                    var imagedata = '';
-                    res.setEncoding('binary');
+            $('ul.list-chapter li').each(function(index,li){
 
-                    res.on('data', function(chunk){
-                        imagedata += chunk
-                    });
-
-                    res.on('end', function(){
-                        fs.writeFile(obj.category_slug+'/'+obj.story_slug+'-md.jpg', imagedata, 'binary', function(err){
-                            if (err) throw err;
-                            console.log('File saved.');
-                        })
-                    });
-                });
-                var total_page = parseInt($('#total-page').attr('value'));
-                var src = infoHolder.find('.info .source').text();;
-                var status = '';
-                infoHolder.find('.info div span').each(function(i,span){
-                    status = $(span).text();
-                });
-
-                var description = $(div).find('.desc-text').html();
-
-
-                trData = {
-                    'source'       : src,
-                    'status'       : status,
-                    'description'       : description,
-                    'page':total_page,
-                    'is_crawler':1
+                link = $(li).find('a').eq(0).attr('href');
+                name = $(li).find('a').eq(0).text();
+                trData[index] = {
+                    'chapter_number'    : (pageInfo.page-1)*50+index+1,
+                    'chapter_name'       : name,
+                    'chapter_slug'  : slug(name),//link.replace('http://truyenfull.vn',''),
+                    'story_id'  : pageInfo.story_id,
+                    'story_slug': pageInfo.story_slug,
+                    'story_name'    : pageInfo.story_name,
+                    'chapter_link': link,
+                    'table':pageInfo.table
                 };
-                console.log(trData);
-                updateSQL = 'UPDATE story SET ? WHERE ?';
-                connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
-                    if (err) {
-                        console.log('Update insert table', err);
-                        //process.kill(1);
-                        //return;
-                    }
-                });
+
+            });
+            //console.log(trData);
+            async.each(trData, function(chapterInfo,cbChapter){
+                return crawlerChapter(chapterInfo,cbChapter);
+
+            }, function(err){
+                //console.log("");
             });
 
         }
     }]);
 }
 
-function getData(row, page, table, totalPage){
-    var conn = mysql.createConnection(configuration.MYSQL_CONFIG);
-
+function crawlerChapter(chapterInfo) {
     var c = new Crawler({
-        'maxConnections':10,
+        'maxConnections': 10,
         'forceUTF8': true,
         'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
-        'callback':function(error,result,$){}
+        'callback': function (error, result, $) {
+        }
     });
-
-    //console.log(row);
-    if(totalPage==='undefined'){
-        totalPage = 0;
-    }
-    console.log(row.link);
-
     c.queue([{
-        'uri':row.link,
-        'callback':function(error,result,$){
-            //lay ra tong so trang
-            reg = /[\d]+$/;
-            totalPage = parseInt($('#total-page').attr('value'));
+        'uri': chapterInfo.chapter_link,
+        'callback': function (error, result, $) {
+            var content = $('div.chapter-content').html();
+            insertData = {
+                'chapter_number'    : chapterInfo.chapter_number,
+                'chapter_name'       : chapterInfo.chapter_name,
+                'chapter_slug'  : chapterInfo.chapter_slug,
+                'story_id'  : chapterInfo.story_id,
+                'story_slug': chapterInfo.story_slug,
+                'story_name'    : chapterInfo.story_name,
+                'content'       : content,
+            };
+            insertSQL = 'INSERT INTO '+chapterInfo.table+' SET ?';
 
-            //cap nhat truyen
-            author = 'aa';//$('div.contdetail span.author').text();
-            source ='aa';// $('div.contdetail span.type').text();
-            status ='aa';//$('div.contdetail span.status').text();
-            short_description = 'aa';//$('.mota').html();
-            total_view = 100;//parseInt($('div.contdetail span.view').text().match(reg)[0]);
-
-            updateSql = 'UPDATE story SET ? WHERE ?';
-
-            conn.query(
-                updateSql,
-                [
-                    {
-                        author:author,
-                        source:source,
-                        status:status,
-                        page:page,
-                        short_description:short_description,
-                        total_view:short_description
-                    },
-                    {
-                        id:row.id
-                    }
-
-                ],
-                function(err,rs){
-                    if(err){
-                        console.log('Update error', err.stack);
-                        return;
-
-                    }
-
-                    //dong ket noi
-                    conn.end();
-                    console.log('Da dong ket noi');
-
+            connection.query(insertSQL,insertData,function(err,resultInsert){
+                if(err){
+                    console.log('Error insert chapter table', err);
+                    //process.kill(1);
+                    //return;
                 }
-            );
-            //thong tin tung trang
-            pageList = [];
 
-            for(var i=1;i<=totalPage;i++){
-                var pageInfo  = {
-                    'url': row.link+'trang-'+i+'/#list-chapter',
-                    'story_id': row.id,
-                    'story_name':'Thần khổng thiên hạ',
-                    'story_slug': 'than-khong-thien-ha',
-                    'page':i,
-                    'totalPage':totalPage,
-                    'table':table
-                };
-                pageList.push(pageInfo);
-            }
+                console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
+                    'processing index:',chapterInfo.chapter_number);
 
-            console.log(pageList);
-            async.each(pageList, function(pageInfo, cbPage){
-                truyenfull.crawlerPage(pageInfo);
 
-            }, function(errPage){
-                console.log('Finished page');
+                /*if(chapterInfo.chapter_number == (totalPage-1)){
+                 console.log('Het rui dong ket noi cuoi cung');
+                 //connection.end();
+
+                 setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
+                 //setTimeout(process.run, 30000);
+
+                 }*/
             });
         }
+
     }]);
 }
-run();
-//getStoryInfo({link:'http://truyenfull.vn/chi-yeu-nuong-tu-tuyet-sac/'})
-exports.run = run;
-//run();
+
+/*var chapters = [];
+ for(var i=1;i<=54;i++) {
+ var pageInfo  = {
+ 'url': 'http://truyenfull.vn/truyen-than-khong-thien-ha/trang-'+i+'/#list-chapter',
+ 'story_id': 1,
+ 'story_name':'Thần khổng thiên hạ',
+ 'story_slug': 'than-khong-thien-ha',
+ 'page':i,
+ 'totalPage':54,
+ 'table':'th'
+ };
+ chapters.push(crawlerPage(pageInfo));
+ }
+ /!*async.each(chapters,function(pageInfo,cb){
+ crawlerPage(pageInfo);
+ },function(error){});*!/
+
+ async.parallel(chapters,function(){
+ console.log('ket thuc');
+ });*/
+
+exports.crawlerPage = crawlerPage;
+exports.crawlerChapter = crawlerChapter;
