@@ -139,6 +139,9 @@ function run(){
                 var total = 0;
                 async.each(rows, function (row, cb) {
                     total = row.current_page + configuration.NUMBER_OF_STORY;
+                    if(total>row.total_page){
+                        total = row.total_page+1;
+                    }
                     sql = "UPDATE category SET ? WHERE ?";
                     connection.query(
                         sql,
@@ -157,15 +160,17 @@ function run(){
                                 return;
 
                             }
-
                             //dong ket noi
                             connection.end();
                             console.log('Da dong ket noi');
 
                         }
                     );
-
-                    crawlerPage(row);
+                    var current = row.current_page;
+                    for(var s=current;s<total;s++){
+                        row.current_page = s;
+                        crawlerPage(row);
+                    }
                 });
 
 

@@ -17,7 +17,7 @@ var MYSQL_CONFIG = {
     'charset': 'utf8_general_ci'
 };*/
 
-var NUMBER_OF_PAGE = 1;
+var NUMBER_OF_PAGE = 10;
 
 exports.MYSQL_CONFIG = MYSQL_CONFIG;
 //exports.MYSQL_CONFIG = MYSQL_HOST_CONFIG;
