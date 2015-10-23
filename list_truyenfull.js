@@ -28,8 +28,11 @@ function crawlerPage(pageInfo){
         'callback':function(error,result,$){}
     });
     console.log(pageInfo);
+    if(pageInfo.current_page!=1){
+        pageInfo.link =pageInfo.link+'trang-'+(pageInfo.current_page);
+    }
     c.queue([{
-        'uri':pageInfo.url,
+        'uri':pageInfo.link,
         'callback':function(error,result,$){
 
             //lay ra tong so trang
@@ -39,17 +42,26 @@ function crawlerPage(pageInfo){
 
                 link = $(div).find('a').eq(0).attr('href');
                 name = $(div).find('.truyen-title a').text();
-                trData[index] = {
+                trData = {
                     'category_name'    : pageInfo.category_name,
-                    'category_id'       : pageInfo.category_id,
+                    'category_id'       : pageInfo.id,
                     'category_slug'  : pageInfo.category_slug,
+                    'author':$(div).find('.author').text(),
                     'story_name':  name ,
                     'story_slug': slug(name),
-                    'img_xs'    : $(div).find('img.visible-xs-block').attr('src'),
-                    'img_sm'    : $(div).find('img.visible-sm-block').attr('src'),
-                    'chapter_link': $(div).find('.truyen-title a').attr('href')
+                    'link': $(div).find('.truyen-title a').attr('href')
                 };
-                crawlerImage(trData[index]);
+                insertSQL = 'INSERT INTO story SET ?';
+                connection.query(insertSQL, trData, function (err, resultInsert) {
+                    if (err) {
+                        console.log('Error insert table', err);
+                        //process.kill(1);
+                        //return;
+                    }
+                });
+                trData.img_xs = $(div).find('img.visible-xs-block').attr('src');
+                trData.img_sm = $(div).find('img.visible-sm-block').attr('src');
+                crawlerImage(trData);
                 return;
             });
             //console.log(trData);
@@ -64,6 +76,10 @@ function crawlerPage(pageInfo){
     }]);
 }
 
+/**
+ * download image
+ * @param obj
+ */
 function crawlerImage(obj){
     console.log(obj);
     var request = http.get(obj.img_sm, function(res) {
@@ -98,6 +114,66 @@ function crawlerImage(obj){
         });
         console.log('DONE');
     });
+}
+
+function run(){
+    var c = new Crawler({
+        'maxConnections': 10,
+        'forceUTF8': true,
+        'callback': function (error, result, $) {
+        }
+    });
+    try {
+        var configuration = require('./configuration');
+        var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+        var sql = "SELECT * from category WHERE current_page <= total_page ORDER BY id ASC LIMIT 1";
+
+        connection.query(sql, function (err, rows) {
+            // connected! (unless `err` is set)
+            if (err) {
+                console.error("Get data error: ", err.stack);
+                return;
+            }
+            if (rows) {
+                //update crawler page
+                var total = 0;
+                async.each(rows, function (row, cb) {
+                    total = row.current_page + configuration.NUMBER_OF_STORY;
+                    sql = "UPDATE category SET ? WHERE ?";
+                    connection.query(
+                        sql,
+                        [
+                            {
+                                current_page:total
+                            },
+                            {
+                                id:row.id
+                            }
+
+                        ],
+                        function(err,rs){
+                            if(err){
+                                console.log('Update error', err.stack);
+                                return;
+
+                            }
+
+                            //dong ket noi
+                            connection.end();
+                            console.log('Da dong ket noi');
+
+                        }
+                    );
+
+                    crawlerPage(row);
+                });
+
+
+            }
+        });
+    }catch(e){
+        console.log(e);
+    }
 }
 
 function crawlerChapter(chapterInfo) {
@@ -148,7 +224,7 @@ function crawlerChapter(chapterInfo) {
     }]);
 }
 
-var category  = [
+/*var category  = [
     {
     'url': 'http://truyenfull.vn/the-loai/tien-hiep/trang-1/',
     'category_name':'Tiên Hiệp',
@@ -159,7 +235,7 @@ var category  = [
 ];
 async.each(category,function(info,cb){
     crawlerPage(info);
-});
-
+});*/
+run();
 exports.crawlerPage = crawlerPage;
 exports.crawlerChapter = crawlerChapter;
