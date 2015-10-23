@@ -62,7 +62,6 @@ function crawlerPage(pageInfo){
                 trData.img_xs = $(div).find('img.visible-xs-block').attr('src');
                 trData.img_sm = $(div).find('img.visible-sm-block').attr('src');
                 crawlerImage(trData);
-                return;
             });
             //console.log(trData);
             /*async.each(trData, function(chapterInfo,cbChapter){
