@@ -33,7 +33,9 @@ function crawlerPage(pageInfo){
 
             //lay ra tong so trang
             reg = /[\d]+$/;
-
+            if(pageInfo.page == pageInfo.totalPage){
+                totalPage = (pageInfo.totalPage-1)*50+$('#list-chapter .list-chapter li').length;
+            }
             $('ul.list-chapter li').each(function(index,li){
 
                 link = $(li).find('a').eq(0).attr('href');
@@ -96,9 +98,7 @@ function crawlerChapter(chapterInfo) {
 
                 console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
                     'processing index:',chapterInfo.chapter_number);
-                if(chapterInfo.page == chapterInfo.totalPage){
-                    totalPage = (chapterInfo.totalPage-1)*50+$('#list-chapter .list-chapter li').length;
-                }
+
                 console.log('TOTAL:',totalPage);
                 if(chapterInfo.chapter_number == (totalPage-1)){
                      console.log('Het rui dong ket noi cuoi cung');
