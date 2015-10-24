@@ -149,14 +149,15 @@ function getStoryInfo(obj){
                     'lastest_chapter':lastestChapter,
                     'is_crawler':1
                 };
-                console.log(trData);
-                return;
+                //console.log(trData);
                 updateSQL = 'UPDATE story SET ? WHERE ?';
                 connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
                     if (err) {
                         console.log('Update insert table', err);
                         //process.kill(1);
                         //return;
+                    }else{
+                        console.log('Update success insert table');
                     }
                 });
             });

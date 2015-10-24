@@ -17,6 +17,7 @@ var process = require('./main_truyenfull');
 
 var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 var trData = [];
+var totalPage = 0;
 
 function crawlerPage(pageInfo){
     var c = new Crawler({
@@ -25,7 +26,7 @@ function crawlerPage(pageInfo){
         'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
         'callback':function(error,result,$){}
     });
-    console.log(pageInfo);
+    //console.log(pageInfo);
     c.queue([{
         'uri':pageInfo.url,
         'callback':function(error,result,$){
@@ -95,17 +96,17 @@ function crawlerChapter(chapterInfo) {
 
                 console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
                     'processing index:',chapterInfo.chapter_number);
-
                 if(chapterInfo.page == chapterInfo.totalPage){
                     totalPage = (chapterInfo.totalPage-1)*50+$('#list-chapter .list-chapter li').length;
                 }
+                console.log('TOTAL:',totalPage);
                 if(chapterInfo.chapter_number == (totalPage-1)){
                      console.log('Het rui dong ket noi cuoi cung');
                      //connection.end();
 
                      setTimeout(function(){
                          console.log('ket thuc sau 30 giay');
-                         //process.run();
+                         process.run();
                      },30000);
                  }
             });
