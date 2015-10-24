@@ -7,7 +7,7 @@ var slug    = require('slug');
 var fs      = require('fs');
 var async   = require('async');
 var configuration   = require('./configuration');
-var process = require('./crawlerAsyncTest');
+var process = require('./main_truyenfull');
 
 /**
  *
@@ -45,7 +45,9 @@ function crawlerPage(pageInfo){
                     'story_slug': pageInfo.story_slug,
                     'story_name'    : pageInfo.story_name,
                     'chapter_link': link,
-                    'table':pageInfo.table
+                    'table':pageInfo.table,
+                    'totalPage':pageInfo.totalPage,
+                    'page':pageInfo.page
                 };
 
             });
@@ -94,15 +96,18 @@ function crawlerChapter(chapterInfo) {
                 console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
                     'processing index:',chapterInfo.chapter_number);
 
+                if(chapterInfo.page == chapterInfo.totalPage){
+                    totalPage = (chapterInfo.totalPage-1)*50+$('#list-chapter .list-chapter li').length;
+                }
+                if(chapterInfo.chapter_number == (totalPage-1)){
+                     console.log('Het rui dong ket noi cuoi cung');
+                     //connection.end();
 
-                /*if(chapterInfo.chapter_number == (totalPage-1)){
-                 console.log('Het rui dong ket noi cuoi cung');
-                 //connection.end();
-
-                 setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
-                 //setTimeout(process.run, 30000);
-
-                 }*/
+                     setTimeout(function(){
+                         console.log('ket thuc sau 30 giay');
+                         //process.run();
+                     },30000);
+                 }
             });
         }
 

@@ -48,9 +48,9 @@ function run(){
             connection.query('SELECT COUNT(*) AS is_table FROM information_schema.tables WHERE table_name ="'+table+'"', function(err,results){
                 //tao table neu chua ton tai
                 console.log('tim ',results);
+                getStoryInfo(row);
                 if(results[0].is_table==0){
-                    getStoryInfo(row);
-                    createTable = "CREATE TABLE IF NOT EXISTS "+table+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
+                    createTable = "CREATE TABLE IF NOT EXISTS "+'chapter_'+row.story_slug.substr(0,2)+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
                         "story_id int(11) NOT NULL,chapter_name text NOT NULL, " +
                         "`time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, story_name text NOT NULL,chapter_number int(11) NOT NULL, link text NOT NULL, " +
                         "content longtext NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id),UNIQUE KEY `id_box_elements` (`story_id`,`chapter_number`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
@@ -61,7 +61,7 @@ console.log(createTable);
                         }
                         //get data
                         console.log('Create table ',table, 'successful');
-                        getData(row, page, table);
+                        getData(row, page, 'chapter_'+row.story_slug.substr(0,2));
 
                         //dong connection khi ca den phan tu cuoi cung
                         if(rows.indexOf(row) == (rows.length-1)){
@@ -71,7 +71,7 @@ console.log(createTable);
                     });
 
                 }else{
-                    getData(row, page,table);
+                    getData(row, page,'chapter_'+row.story_slug.substr(0,2));
                     if(rows.indexOf(row) == (rows.length-1)){
                         connection.end();
                     }
@@ -131,7 +131,8 @@ function getStoryInfo(obj){
                     });
                 });
                 var total_page = parseInt($('#total-page').attr('value'));
-                var src = infoHolder.find('.info .source').text();;
+                var src = infoHolder.find('.info .source').text();
+                var lastestChapter = $(div).find('.l-chapter .l-chapters li').eq(0).text();
                 var status = '';
                 infoHolder.find('.info div span').each(function(i,span){
                     status = $(span).text();
@@ -145,9 +146,11 @@ function getStoryInfo(obj){
                     'status'       : status,
                     'description'       : description,
                     'page':total_page,
+                    'lastest_chapter':lastestChapter,
                     'is_crawler':1
                 };
-                //console.log(trData);
+                console.log(trData);
+                return;
                 updateSQL = 'UPDATE story SET ? WHERE ?';
                 connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
                     if (err) {
