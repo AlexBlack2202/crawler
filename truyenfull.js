@@ -55,6 +55,9 @@ function crawlerPage(pageInfo){
 
             });
             //console.log(trData);
+            if(connection==null){
+		connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+	   }
             async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
 
@@ -88,7 +91,7 @@ function crawlerChapter(chapterInfo) {
                 'content'       : content,
             };
             insertSQL = 'INSERT INTO '+chapterInfo.table+' SET ?';
-
+	    	
             connection.query(insertSQL,insertData,function(err,resultInsert){
                 if(err){
                     console.log('Error insert chapter table', err);

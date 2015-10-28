@@ -25,7 +25,7 @@ function run(){
 
     //get status pending to crawler
     connection.query('SELECT * from story WHERE ' +
-        'is_crawler=0 LIMIT 1', function(err, rows) {
+        'is_crawler=0 order by id desc LIMIT 1', function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
             console.error("Get data error: ", err.stack);
@@ -153,9 +153,23 @@ function getStoryInfo(obj){
                 updateSQL = 'UPDATE story SET ? WHERE ?';
                 connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
                     if (err) {
-                        console.log('Update insert table', err);
-                        //process.kill(1);
-                        //return;
+                        console.log('Update lan 1 ERROR', err);
+			trData = {
+		            'is_crawler':1
+		        };
+			connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
+		            if (err) {
+		                console.log('Update lan 2 table ERROR', err);
+				trData = {
+				    'is_crawler':1
+				};
+
+		            }else{
+		                console.log('Update lan 2  success');
+				run();
+		            }
+		        });
+
                     }else{
                         console.log('Update success insert table');
                     }
