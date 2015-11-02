@@ -19,4 +19,4 @@ node list_truyenfull.js
 node main_truyenfull.js
 
 #3. update hot, full, story
-node hotfull.js
+node list_hotfull.js
