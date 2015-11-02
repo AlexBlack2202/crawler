@@ -5,7 +5,7 @@ var Crawler         = require('crawler');
 var mysql           = require('mysql');
 var slug            = require('slug');
 var async           = require('async');
-var truyenfull       = require('./truyenfull');
+var truyenfull       = require('./truyenfull_continue');
 var configuration   = require('./configuration');
 var http    = require('http');
 var fs      = require('fs');
@@ -25,7 +25,7 @@ function run(){
 
     //get status pending to crawler
     //var query = 'SELECT * from story WHERE is_crawler=0 order by id desc LIMIT 1';
-    var query = 'SELECT * from story WHERE status !="Full" order by id desc LIMIT 1';
+    var query = 'SELECT * from story WHERE status !="Full" AND is_crawler=1 order by id desc LIMIT 1';
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
@@ -116,21 +116,6 @@ function getStoryInfo(obj){
             $('.col-truyen-main').each(function(index,div){
                 var infoHolder = $(div).find('.info-holder');
                 var image = infoHolder.find('.book img').attr('src');
-                var request = http.get(image, function(res) {
-                    var imagedata = '';
-                    res.setEncoding('binary');
-
-                    res.on('data', function(chunk){
-                        imagedata += chunk
-                    });
-
-                    res.on('end', function(){
-                        fs.writeFile(obj.category_slug+'/'+obj.story_slug+'-md.jpg', imagedata, 'binary', function(err){
-                            if (err) throw err;
-                            console.log('File saved.');
-                        })
-                    });
-                });
                 var total_page = parseInt($('#total-page').attr('value'));
                 var src = infoHolder.find('.info .source').text();
                 var lastestChapter = $(div).find('.l-chapter .l-chapters li').eq(0).text();
@@ -148,7 +133,7 @@ function getStoryInfo(obj){
                     'description'       : description,
                     'page':total_page,
                     'lastest_chapter':lastestChapter,
-                    'is_crawler':1
+                    'is_crawler':2
                 };
                 //console.log(trData);
                 updateSQL = 'UPDATE story SET ? WHERE ?';
