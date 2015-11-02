@@ -5,12 +5,12 @@ var Crawler         = require('crawler');
 var mysql           = require('mysql');
 var slug            = require('slug');
 var async           = require('async');
-var truyenfull       = require('./truyenfull');
+var truyenfull       = require('./truyenfullold');
 var configuration   = require('./configuration');
 
 
 function run(){
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+    var connection = mysql.createConnection(configuration.MYSQL_HOST_CONFIG);
 
     connection.connect(function(error){
         if(error){
@@ -23,8 +23,9 @@ function run(){
 
     //get status pending to crawler
     connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND ' +
-        'link="http://truyenfull.vn/linh-chu/"', function(err, rows) {
+        'link="http://truyenfull.vn/phe-hau-tuong-quan/"', function(err, rows) {
         // connected! (unless `err` is set)
+
         if(err){
             console.error("Get data error: ", err.stack);
             return;
@@ -39,7 +40,7 @@ function run(){
             console.log(row.link);
             page = row.page;
             title = row.story_slug;
-            table = row.story_slug.substr(0,2)+'_full';
+            table = row.story_slug.substr(0,2)+'_story';
 
             console.log(table+"-"+page);
 
@@ -86,7 +87,7 @@ function run(){
 }
 
 function getData(row, page, table, totalPage){
-    var conn = mysql.createConnection(configuration.MYSQL_CONFIG);
+    var conn = mysql.createConnection(configuration.MYSQL_HOST_CONFIG);
 
     var c = new Crawler({
         'maxConnections':10,
