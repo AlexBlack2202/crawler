@@ -20,3 +20,6 @@ node main_truyenfull.js
 
 #3. update hot, full, story
 node list_hotfull.js
+
+#4. get truyen dang ra
+node continue_truyenfull.js
