@@ -16,8 +16,8 @@ var http    = require('http');
  * @param done
  */
 
-//var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
-var connection = mysql.createConnection(configuration.MYSQL_HOSTGATO_CONFIG);
+var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+//var connection = mysql.createConnection(configuration.MYSQL_HOSTGATO_CONFIG);
 var trData = [];
 var totalPage = 0;
 
@@ -67,11 +67,12 @@ function crawlerPage(pageInfo){
 
                 updateData = {
                     hot:hot,
-                    sorder:index+(pageInfo.current_page-1)*totalStory+1
+                    //sorder:index+(pageInfo.current_page-1)*totalStory+1, //khi nao chay cho hot thi moi update sorder
+                    //status:status
                 }
                 console.log(trData);
-                updateSQL = 'UPDATE story SET ? WHERE ?';
-                connection.query(updateSQL, [updateData,{story_slug:trData.story_slug}], function (err, resultInsert) {
+                updateSQL = 'INSERT INTO story SET ? ON DUPLICATE KEY UPDATE ?';
+                connection.query(updateSQL, [trData,updateData], function (err, resultInsert) {
                     if (err) {
                         console.log('UPDATE story table ERROR', err);
                         //process.kill(1);
@@ -80,19 +81,15 @@ function crawlerPage(pageInfo){
                         if(index== (totalStory-1)){
                             setTimeout(function(){
                                 console.log('ket thuc sau 30 giay het trang ',pageInfo.current_page);
-                                run(pageInfo.current_page+1);
+                                //run(pageInfo.current_page+1);
                             },30000);
                         }
                     }
                 });
+                trData.img_xs = $(div).find('img.visible-xs-block').attr('src');
+                trData.img_sm = $(div).find('img.visible-sm-block').attr('src');
+                crawlerImage(trData);
             });
-            //console.log(trData);
-            /*async.each(trData, function(chapterInfo,cbChapter){
-                return crawlerChapter(chapterInfo,cbChapter);
-
-            }, function(err){
-                //console.log("");
-            });*/
 
         }
     }]);
@@ -144,10 +141,11 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: null,
-            category_slug: null,
-            id:null,
+            link:'http://truyenfull.vn/danh-sach/truyen-moi/',
+            //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
+            category_name: 'Truyện Mới',
+            category_slug: 'truyen-moi',
+            id:30,
             current_page:current_page,
             total_page:105
         };
