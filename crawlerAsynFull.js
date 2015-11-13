@@ -10,7 +10,7 @@ var configuration   = require('./configuration');
 
 
 function run(){
-    var connection = mysql.createConnection(configuration.MYSQL_HOST_CONFIG);
+    var connection = mysql.createConnection(configuration.MYSQL_STORY_CONFIG);
 
     connection.connect(function(error){
         if(error){
@@ -23,7 +23,7 @@ function run(){
 
     //get status pending to crawler
     connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND ' +
-        'link="http://truyenfull.vn/phe-hau-tuong-quan/"', function(err, rows) {
+        'link="http://truyenfull.vn/gap-em-noi-tan-cung-the-gioi/"', function(err, rows) {
         // connected! (unless `err` is set)
 
         if(err){

@@ -15,7 +15,7 @@ var process = require('./crawlerAsyncTest');
  * @param done
  */
 
-var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var connection = mysql.createConnection(configuration.MYSQL_STORY_CONFIG);
 var trData = [];
 
 function crawlerPage(pageInfo){
