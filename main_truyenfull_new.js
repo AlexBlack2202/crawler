@@ -5,10 +5,13 @@ var Crawler         = require('crawler');
 var mysql           = require('mysql');
 var slug            = require('slug');
 var async           = require('async');
-var truyenfull       = require('./truyenfull');
+var truyenfull       = require('./truyenfull_new');
 var configuration   = require('./configuration');
 var http    = require('http');
 var fs      = require('fs');
+var sys = require('sys')
+var exec = require('child_process').exec;
+var child;
 
 
 function run(){
@@ -24,7 +27,7 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE is_crawler=0 order by id desc LIMIT 1';
+    var query = 'SELECT * from story WHERE is_crawler=0 AND category_id=30 order by id desc LIMIT 1';
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
@@ -34,6 +37,15 @@ function run(){
         //console.log(rows);
         if(rows.length==0){
             console.log('Khong co du lieu nao!');
+            //xoa toan bo image trong thu muc truyen-moi
+            var command = "rm -rf truyen-moi/*";
+            child = exec(command, function (error, stdout, stderr) {
+                sys.print('stdout: ' + stdout);
+                sys.print('stderr: ' + stderr);
+                if (error !== null) {
+                    console.log('exec error: ' + error);
+                }
+            });
             connection.end();
             return;
         }
@@ -115,6 +127,26 @@ function getStoryInfo(obj){
             $('.col-truyen-main').each(function(index,div){
                 var infoHolder = $(div).find('.info-holder');
                 var image = infoHolder.find('.book img').attr('src');
+
+                var total_page = parseInt($('#total-page').attr('value'));
+                var src = infoHolder.find('.info .source').text();
+                var cate = infoHolder.find('.info a[itemprop=genre]').eq(0).text();
+                cateInfo = getCate(cate);
+                if(cateInfo == false){
+                    //bo qua neu khong tim thay thong tin
+                    return true;
+                }
+
+                //copy image to new cate folder
+                var command = "mv truyen-moi/"+obj.story_slug+"* "+cateInfo[2];
+                child = exec(command, function (error, stdout, stderr) {
+                    sys.print('stdout: ' + stdout);
+                    sys.print('stderr: ' + stderr);
+                    if (error !== null) {
+                        console.log('exec error: ' + error);
+                    }
+                });
+                obj.category_slug = cateInfo[2];
                 var request = http.get(image, function(res) {
                     var imagedata = '';
                     res.setEncoding('binary');
@@ -130,8 +162,7 @@ function getStoryInfo(obj){
                         })
                     });
                 });
-                var total_page = parseInt($('#total-page').attr('value'));
-                var src = infoHolder.find('.info .source').text();
+
                 var lastestChapter = $(div).find('.l-chapter .l-chapters li').eq(0).text();
                 var status = '';
                 infoHolder.find('.info div span').each(function(i,span){
@@ -145,6 +176,9 @@ function getStoryInfo(obj){
                     'source'       : src,
                     'status'       : status,
                     'description'       : description,
+                    'category_id':cateInfo[0],
+                    'category_slug':cateInfo[2],
+                    'category_name':cateInfo[1],
                     'page':total_page,
                     'lastest_chapter':lastestChapter,
                     'is_crawler':1
@@ -178,6 +212,27 @@ function getStoryInfo(obj){
 
         }
     }]);
+}
+
+function getCate(cateStr){
+    var cate = cateStr.trim().split(',');
+    var listCate = ['',
+        'Tiên Hiệp','Kiếm Hiệp','Ngôn Tình','Đô Thị','Võng Du','Quan Trường','Khoa Huyền','Huyền Huyễn','Dị giới','Dị Năng',
+        'Quân Sự','Lịch Sử','Xuyên Không','Trọng Sinh','Trinh Thám','Thám Hiểm','Linh Dị','Sắc','Cung Đấu','Nữ Cường','Gia Đấu',
+        'Đông Phương','Đam Mỹ','Bách Hợp','Hài Hước','Điền Văn','Cổ Đại','Mạt Thế','Truyện Teen'
+    ];
+    var listSlug = ['',
+        'tien-hiep','kiem-hiep','ngon-tinh','do-thi','vong-du','quan-truong','khoa-huyen','huyen-huyen','di-gioi','di-nang',
+        'quan-su','lich-su','xuyen-khong','trong-sinh','trinh-tham','tham-hiem','linh-di','sac','cung-dau','nu-cuong','gia-dau',
+        'dong-phuong','dam-my','bach-hop','hai-huoc','dien-van','co-dai','mat-the','truyen-teen'
+    ];
+
+    var key = listCate.indexOf(cate[0]);
+    if(key===-1){
+        return false;
+    }else{
+        return [key,listCate[key],listSlug[key]];
+    }
 }
 
 function getData(row, page, table, totalPage){

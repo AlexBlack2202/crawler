@@ -7,7 +7,7 @@ var slug    = require('slug');
 var fs      = require('fs');
 var async   = require('async');
 var configuration   = require('./configuration');
-var process = require('./main_truyenfull');
+var process = require('./main_truyenfull_new');
 
 /**
  *
