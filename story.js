@@ -4,6 +4,7 @@ var slug            = require('slug');
 var async           = require('async');
 var configuration   = require('./configuration');
 
+var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 function listStory(link){
     var c = new Crawler({
         'maxConnections':10,
@@ -46,6 +47,15 @@ function getDetail(link){
             story.content = $(content).find('p').html();
 
             console.log(story);
+            insertSQL = 'INSERT INTO chapter SET ?';
+
+            connection.query(insertSQL,story,function(err,resultInsert) {
+                if (err) {
+                    console.log('Error insert chapter table', err);
+                    //process.kill(1);
+                    //return;
+                }
+            });
         }
     }]);
 }
