@@ -14,19 +14,40 @@ function listStory(link){
     });
 
     console.log(link);
-
+    var lists = [];
     c.queue([{
         'uri': link,
         'callback': function (error, result, $) {
             $('.innerquiz').each(function(i,div){
-                console.log($(div).find('h1 a').text());
                 //getDetail($(div).find('h2 a').attr('href'));
-            })
+                story = {
+                    'story_name':$(div).find('h1 a').text(),
+                    'link':$(div).find('h1 a').attr('href'),
+                    'description':$(div).find('div.descr').text()
+                };
+                insertSQL = 'INSERT INTO quotev_story SET ?';
+
+                connection.query(insertSQL,story,function(err,resultInsert) {
+                    if (err) {
+                        console.log('Error insert chapter table', err);
+                        //process.kill(1);
+                        //return;
+                    }
+                });
+            });
+            /*console.log(lists);
+            if(lists.length>0) {
+                async.each(lists, function (info, cbPage) {
+                    getDetail(info);
+                }, function (errPage) {
+                    console.log('Finished page');
+                });
+            }*/
         }
     }]);
 }
 
-function getDetail(link){
+function getDetail(info){
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
@@ -34,10 +55,8 @@ function getDetail(link){
         'callback':function(error,result,$){}
     });
 
-    console.log(link);
-
     c.queue([{
-        'uri': link,
+        'uri': info.link,
         'callback': function (error, result, $) {
             var story = {};
 
