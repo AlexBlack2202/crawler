@@ -98,6 +98,11 @@ function run(){
                         chapters.push(chapter);
                     });
                     console.log(chapters);
+                    async.each(chapters, function (info, cbPage) {
+                        getDetail(info);
+                    }, function (errPage) {
+                        console.log('Finished story page');
+                    });
                 }
             }]);
 
@@ -110,6 +115,7 @@ function run(){
 }
 
 function getDetail(info){
+    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
@@ -118,19 +124,19 @@ function getDetail(info){
     });
 
     c.queue([{
-        'uri': info.link,
+        'uri': info.chapter_link,
         'callback': function (error, result, $) {
-            var story = {};
+            var chapter = {
+                story_id:info.story_id,
+                story_name:info.story_name,
+                chapter_number: info.chapter_number,
+                chapter_name : info.chapter_name,
+                content:$('#story_text').html()
+            };
 
-            var content = $('#story .content');
-            story.chapter_name = $(content).find('h1').text();
-            story.chapter = $(content).find('h2 a').text();
-            story.content = $(content).find('p').html();
+            insertSQL = 'INSERT INTO quotev_chapter SET ?';
 
-            console.log(story);
-            insertSQL = 'INSERT INTO chapter SET ?';
-
-            connection.query(insertSQL,story,function(err,resultInsert) {
+            connection.query(insertSQL,chapter,function(err,resultInsert) {
                 if (err) {
                     console.log('Error insert chapter table', err);
                     //process.kill(1);
