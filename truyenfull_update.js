@@ -19,7 +19,7 @@ var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 var trData = [];
 var totalPage = 0;
 
-function crawlerPage(pageInfo){
+function crawlerPage(pageInfo,cbPage){
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
@@ -56,20 +56,21 @@ function crawlerPage(pageInfo){
             });
             //console.log(trData);
             if(connection==null){
-		connection = mysql.createConnection(configuration.MYSQL_CONFIG);
-	   }
+                connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+            }
             async.each(trData, function(chapterInfo,cbChapter){
                 return crawlerChapter(chapterInfo,cbChapter);
 
             }, function(err){
                 //console.log("");
+                cbPage();
             });
 
         }
     }]);
 }
 
-function crawlerChapter(chapterInfo) {
+function crawlerChapter(chapterInfo,cbChapter) {
     var c = new Crawler({
         'maxConnections': 10,
         'forceUTF8': true,
@@ -101,8 +102,9 @@ function crawlerChapter(chapterInfo) {
 
                 console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
                     'processing index:',chapterInfo.chapter_number);
+                cbChapter();
 
-                console.log('TOTAL:',totalPage);
+                /*console.log('TOTAL:',totalPage);
                 if(chapterInfo.chapter_number == (totalPage-1)){
                      console.log('Het rui dong ket noi cuoi cung');
                      //connection.end();
@@ -111,7 +113,7 @@ function crawlerChapter(chapterInfo) {
                          console.log('ket thuc sau 30 giay');
                          process.run();
                      },30000);
-                 }
+                 }*/
             });
         }
 

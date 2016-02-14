@@ -24,7 +24,7 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE status="Đang ra" AND update_story = 0 order by id desc LIMIT 1';
+    var query = 'SELECT * from story WHERE status="Đang ra" AND update_story = 0 order by id asc LIMIT 1';
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
@@ -61,29 +61,22 @@ console.log(createTable);
                         }
                         //get data
                         console.log('Create table ',table, 'successful');
-                        getData(row, page, 'chapter_'+row.story_slug.substr(0,2));
-
-                        //dong connection khi ca den phan tu cuoi cung
-                        if(rows.indexOf(row) == (rows.length-1)){
-                            connection.end();
-                        }
+                        getData(row, page, 'chapter_'+row.story_slug.substr(0,2),cb);
 
                     });
 
                 }else{
-                    getData(row, page,'chapter_'+row.story_slug.substr(0,2));
-                    if(rows.indexOf(row) == (rows.length-1)){
-                        connection.end();
-                    }
+                    getData(row, page,'chapter_'+row.story_slug.substr(0,2),cb);
                 }
 
 
 
 
             });
-            return cb(null);
-        }, function(error){
-            console.log('FINISHED!!',error);//dong ket noi
+        }, function(){
+            console.log('FINISHED CRAWLER STORY!!');//dong ket noi
+            connection.end();
+            run();
         });
 
     });
@@ -155,24 +148,26 @@ function getStoryInfo(obj){
                 connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
                     if (err) {
                         console.log('Update lan 1 ERROR', err);
-			trData = {
-		            'is_crawler':1
-		        };
-			connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
-		            if (err) {
-		                console.log('Update lan 2 table ERROR', err);
-				trData = {
-				    'is_crawler':1
-				};
+                        trData = {
+                            'is_crawler':1
+                        };
+                        connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
+                            if (err) {
+                                console.log('Update lan 2 table ERROR', err);
+                                trData = {
+                                    'is_crawler':1
+                                };
 
-		            }else{
-		                console.log('Update lan 2  success');
-				run();
-		            }
-		        });
+                            }else{
+                                console.log('Update lan 2  success');
+                                //run();
+                            }
+                            connection.end();
+                        });
 
                     }else{
                         console.log('Update success insert table');
+                        connection.end();
                     }
                 });
             });
@@ -181,8 +176,7 @@ function getStoryInfo(obj){
     }]);
 }
 
-function getData(row, page, table, totalPage){
-    var conn = mysql.createConnection(configuration.MYSQL_CONFIG);
+function getData(row, page, table, cb,totalPage){
 
     var c = new Crawler({
         'maxConnections':10,
@@ -222,10 +216,11 @@ function getData(row, page, table, totalPage){
 
             console.log(pageList);
             async.each(pageList, function(pageInfo, cbPage){
-                truyenfull.crawlerPage(pageInfo);
+                truyenfull.crawlerPage(pageInfo,cbPage);
 
             }, function(errPage){
                 console.log('Finished page');
+                cb();
             });
         }
     }]);
