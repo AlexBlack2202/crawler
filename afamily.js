@@ -142,9 +142,9 @@ function run(){
         }, function(){
             console.log('FINISHED CRAWLER CATEGORY!!');//dong ket noi
             connection.end();
+            console.log('STOP 5 second to continue');
             setTimeout(function(){
-                //run();
-                console.log('STOP 5 second to continue');
+                run();
             },5000);
         });
 
