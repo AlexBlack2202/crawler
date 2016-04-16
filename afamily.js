@@ -7,7 +7,7 @@ var slug    = require('slug');
 var fs      = require('fs');
 var async   = require('async');
 var configuration   = require('./configuration');
-var BASE_URL = 'http://afamily.vn'
+var BASE_URL = 'http://afamily.vn/';
 
 /**
  *
@@ -15,11 +15,11 @@ var BASE_URL = 'http://afamily.vn'
  * @param done
  */
 
-var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var connection = null;
 var trData = [];
 var totalPage = 0;
 
-function crawlerDetail(url){
+function crawlerDetail(page,cbPage){
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
@@ -28,34 +28,26 @@ function crawlerDetail(url){
     });
     //console.log(pageInfo);
     c.queue([{
-        'uri':url,
+        'uri':page.link,
         'callback':function(error,result,$){
 
             //lay ra tong so trang
             var content = $('.detail_content').html();
-            console.log(content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">'));
-            /*$('ul.list-chapter li').each(function(index,li){
-
-                link = $(li).find('a').eq(0).attr('href');
-                name = $(li).find('a').eq(0).text();
-                trData[index] = {
-                    'chapter_number'    : (pageInfo.page-1)*50+index+1,
-                    'chapter_name'       : name,
-                    'chapter_slug'  : slug(name),//link.replace('http://truyenfull.vn',''),
-                    'story_id'  : pageInfo.story_id,
-                    'story_slug': pageInfo.story_slug,
-                    'story_name'    : pageInfo.story_name,
-                    'chapter_link': link,
-                    'table':pageInfo.table,
-                    'totalPage':pageInfo.totalPage,
-                    'page':pageInfo.page
-                };
-
-            });*/
-            //console.log(trData);
-            if(connection==null){
+            page.description = content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">');
+            /*if(connection==null){
                 connection = mysql.createConnection(configuration.MYSQL_CONFIG);
-            }
+            }*/
+
+            insertSQL = 'INSERT INTO detail SET ?';
+
+            connection.query(insertSQL,page,function(err,resultInsert){
+                if(err){
+                    console.log('Error insert chapter table', err);
+                }else {
+                    console.log('Success insert');
+                }
+                cbPage();
+            });
 
         }
     }]);
@@ -68,7 +60,7 @@ function crawlerPage(pageInfo,cb){
         'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
         'callback':function(error,result,$){}
     });
-    //console.log(pageInfo);
+    console.log(pageInfo);
     c.queue([{
         'uri':pageInfo.link,
         'callback':function(error,result,$){
@@ -80,25 +72,31 @@ function crawlerPage(pageInfo,cb){
                 link = BASE_URL+$(li).find('a').eq(0).attr('href');
                 img = $(li).find('img').eq(0).attr('src');
                 data[index] = {
-                    'link'    : link,
-                    'img'       : img,
+                    link    : link,
+                    img_link : img,
                     title: $(li).find('a').eq(0).attr('title'),
-                    brief:$(li).find('p').eq(0).text()
+                    brief:$(li).find('p').eq(0).text(),
+                    category_name:pageInfo.name,
+                    category_id:pageInfo.id
                 };
 
             });
             console.log(data);
-            if(connection==null){
-                connection = mysql.createConnection(configuration.MYSQL_CONFIG);
-            }
+
+            async.each(data, function(pageInfo, cbPage){
+                crawlerDetail(pageInfo,cbPage);
+
+            }, function(errPage){
+                console.log('xong 1 trang');
+                cb();
+            });
 
         }
     }]);
 }
 
 function run(){
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
-
+    connection = mysql.createConnection(configuration.MYSQL_BABY_CONFIG);
     connection.connect(function(error){
         if(error){
             console.log('error connecting: ',error.stack);
@@ -123,30 +121,35 @@ function run(){
             return;
         }
         async.each(rows, function(row,cb){
-            console.log(row.link);
+            connection.query('UPDATE category SET crawler = ? WHERE id = ?', [1, row.id]);
+            var link =row.link;
             var pageList = [];
-            for(var i=page;i<=totalPage;i++){
-                row.link = row.link+'/trang-'+i+'.htm';
-                var pageInfo  = row;
-                pageList.push(pageInfo);
+            for(var i=1;i<=row.total_page;i++){
+                row.link = link+'/trang-'+i+'.htm';
+                pageList.push(row.link);
             }
 
             console.log(pageList);
             async.each(pageList, function(pageInfo, cbPage){
-                crawlerPage(pageInfo,cbPage);
+                row.link = pageInfo;
+                //console.log(row);
+                crawlerPage(row,cbPage);
 
             }, function(errPage){
-                console.log('Finished page');
+                console.log('Finished category');
                 cb();
             });
         }, function(){
-            console.log('FINISHED CRAWLER STORY!!');//dong ket noi
+            console.log('FINISHED CRAWLER CATEGORY!!');//dong ket noi
             connection.end();
-            run();
+            setTimeout(function(){
+                //run();
+                console.log('STOP 5 second to continue');
+            },5000);
         });
 
     });
 }
 
 //crawlerDetail('http://afamily.vn/su-nguy-hiem-kho-ngo-cua-mot-san-pham-bo-me-nao-cung-tung-dung-cho-con-20160309030752246.chn');
-crawlerPage('http://afamily.vn/me-va-be/day-con-thong-minh.htm');
+run();
