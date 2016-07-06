@@ -19,12 +19,12 @@ function run(){
             console.log('error connecting: ',error.stack);
             return;
         }
-        console.log('Connected mysql db');
+        console.log('Connected mysql db, sort:');
     });
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE status="Đang ra" AND update_story = 0 order by id asc LIMIT 1';
+    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 order by id  DESC LIMIT 1';
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
@@ -224,6 +224,14 @@ function getData(row, page, table, cb,totalPage){
             });
         }
     }]);
+}
+
+const args = process.argv;
+console.log(args);
+if(args.length<3){
+    var sort = 'ASC';
+}else{
+    var sort = args[2];
 }
 run();
 //getStoryInfo({link:'http://truyenfull.vn/chi-yeu-nuong-tu-tuyet-sac/'})

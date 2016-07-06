@@ -80,7 +80,7 @@ function crawlerChapter(chapterInfo) {
     c.queue([{
         'uri': chapterInfo.chapter_link,
         'callback': function (error, result, $) {
-            var content = $('div.chapter-content').html();
+            var content = $('div.chapter-content-rb').html();
             insertData = {
                 'chapter_number'    : chapterInfo.chapter_number,
                 'chapter_name'       : chapterInfo.chapter_name,
