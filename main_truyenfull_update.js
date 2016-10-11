@@ -24,7 +24,8 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 order by id  DESC LIMIT 1';
+    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 order by id  ASC LIMIT 1';
+    console.log(query);
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){

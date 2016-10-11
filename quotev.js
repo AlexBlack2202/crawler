@@ -3,7 +3,7 @@ var mysql           = require('mysql');
 var slug            = require('slug');
 var async           = require('async');
 var configuration   = require('./configuration');
-
+var category = {id:2,name:'Romance'};
 function listStory(link){
     var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
     var c = new Crawler({
@@ -23,7 +23,9 @@ function listStory(link){
                 story = {
                     'story_name':$(div).find('h1 a').text(),
                     'link':$(div).find('h1 a').attr('href'),
-                    'description':$(div).find('div.descr').text()
+                    'description':$(div).find('div.descr').text(),
+                    category_id:category.id,
+                    category_name:category.name
                 };
                 insertSQL = 'INSERT INTO quotev_story SET ?';
 
@@ -61,7 +63,7 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT id,story_name, link from quotev_story WHERE status=1 order by id desc LIMIT 1';
+    var query = 'SELECT id,story_name, link from quotev_story WHERE status=1 order by id desc LIMIT 40';
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
@@ -82,6 +84,12 @@ function run(){
                 'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
                 'callback':function(error,result,$){}
             });
+            updateSQL = 'UPDATE quotev_story SET ? WHERE ?';
+            connection.query(updateSQL, [{status:0},{id:row.id}], function (err, resultInsert) {
+                if (err) {
+                    console.log('Update lan 1 ERROR', err);
+                }
+            });
 
             c.queue([{
                 'uri': row.link,
@@ -99,23 +107,24 @@ function run(){
                     });
                     console.log(chapters);
                     async.each(chapters, function (info, cbPage) {
-                        getDetail(info);
+                        getDetail(connection,info,cbPage);
                     }, function (errPage) {
                         console.log('Finished story page');
+                        cb();
                     });
                 }
             }]);
 
-            return cb(null);
         }, function(error){
-            console.log('FINISHED!!');//dong ket noi
+            console.log('FINISHED,wait 5 second to continue!!');//dong ket noi
+            connection.end();
+            setTimeout(run,5000);
         });
 
     });
 }
 
-function getDetail(info){
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+function getDetail(connection,info,cbPage){
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
@@ -131,7 +140,7 @@ function getDetail(info){
                 story_name:info.story_name,
                 chapter_number: info.chapter_number,
                 chapter_name : info.chapter_name,
-                content:$('#story_text').html()
+                content:$('#rescontent').html()
             };
 
             insertSQL = 'INSERT INTO quotev_chapter SET ?';
@@ -141,6 +150,9 @@ function getDetail(info){
                     console.log('Error insert chapter table', err);
                     //process.kill(1);
                     //return;
+                    cbPage();
+                }else{
+                    cbPage();
                 }
             });
         }
@@ -149,7 +161,9 @@ function getDetail(info){
 /**
  * lay ra danh sach truyen
  */
-//listStory('http://www.quotev.com/stories/c/Romance?v=users&page=1');
+/*for(var i=0;i<59;i++) {
+    listStory('https://www.quotev.com/stories/c/Romance?v=rating&page='+i);
+}*/
 
 /**
  * lay ra cac chuong cua truyen
