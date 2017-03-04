@@ -81,6 +81,7 @@ function crawlerChapter(chapterInfo) {
         'uri': chapterInfo.chapter_link,
         'callback': function (error, result, $) {
             var content = $('div.chapter-content-rb').html();
+            content = content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">');
             insertData = {
                 'chapter_number'    : chapterInfo.chapter_number,
                 'chapter_name'       : chapterInfo.chapter_name,

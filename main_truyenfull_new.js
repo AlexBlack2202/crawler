@@ -27,7 +27,7 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE is_crawler=0 AND category_id=30 order by id desc LIMIT 1';
+    var query = 'SELECT * from story WHERE is_crawler=0 AND category_id=30 order by id DESC LIMIT 1';
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
@@ -76,17 +76,17 @@ console.log(createTable);
                         getData(row, page, 'chapter_'+row.story_slug.substr(0,2));
 
                         //dong connection khi ca den phan tu cuoi cung
-                        if(rows.indexOf(row) == (rows.length-1)){
+                        //if(rows.indexOf(row) == (rows.length-1)){
                             connection.end();
-                        }
+                        //}
 
                     });
 
                 }else{
                     getData(row, page,'chapter_'+row.story_slug.substr(0,2));
-                    if(rows.indexOf(row) == (rows.length-1)){
+                    //if(rows.indexOf(row) == (rows.length-1)){
                         connection.end();
-                    }
+                    //}
                 }
 
 
@@ -102,6 +102,7 @@ console.log(createTable);
 }
 
 function getStoryInfo(obj){
+    console.log('OBJ:',obj);
     var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
 
     connection.connect(function(error){
@@ -132,7 +133,9 @@ function getStoryInfo(obj){
                 var src = infoHolder.find('.info .source').text();
                 var cate = infoHolder.find('.info a[itemprop=genre]').eq(0).text();
                 cateInfo = getCate(cate);
+
                 if(cateInfo == false){
+
                     //bo qua neu khong tim thay thong tin
                     return true;
                 }
@@ -183,7 +186,7 @@ function getStoryInfo(obj){
                     'lastest_chapter':lastestChapter,
                     'is_crawler':1
                 };
-                //console.log(trData);
+                //console.log('trData: ',trData);
                 updateSQL = 'UPDATE story SET ? WHERE ?';
                 connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
                     if (err) {
@@ -217,7 +220,7 @@ function getStoryInfo(obj){
 function getCate(cateStr){
     var cate = cateStr.trim().split(',');
     var listCate = ['',
-        'Tiên Hiệp','Kiếm Hiệp','Ngôn Tình','Đô Thị','Võng Du','Quan Trường','Khoa Huyền','Huyền Huyễn','Dị giới','Dị Năng',
+        'Tiên Hiệp','Kiếm Hiệp','Ngôn Tình','Đô Thị','Võng Du','Quan Trường','Khoa Huyễn','Huyền Huyễn','Dị Giới','Dị Năng',
         'Quân Sự','Lịch Sử','Xuyên Không','Trọng Sinh','Trinh Thám','Thám Hiểm','Linh Dị','Sắc','Cung Đấu','Nữ Cường','Gia Đấu',
         'Đông Phương','Đam Mỹ','Bách Hợp','Hài Hước','Điền Văn','Cổ Đại','Mạt Thế','Truyện Teen'
     ];

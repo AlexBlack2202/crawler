@@ -15,7 +15,7 @@ var process = require('./crawlerAsyncTest');
  * @param done
  */
 
-var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var connection = mysql.createConnection(configuration.MYSQL_STORY_CONFIG);
 var trData = [];
 var totalPage = 0;
 
@@ -76,7 +76,9 @@ function crawlerPage(pageInfo, done){
 	    //console.log(trData);
 
             async.each(trData, function(chapterInfo,cbChapter){
-                return crawlerChapter(chapterInfo,cbChapter);
+                if(typeof chapterInfo !=='undefined') {
+                    return crawlerChapter(chapterInfo, cbChapter);
+                }
 
             }, function(err){
                 //console.log("");
@@ -94,7 +96,7 @@ function crawlerChapter(chapterInfo,cb){
     });
 
 
-
+    console.log(chapterInfo);
     c.queue([{
         "uri":chapterInfo.chapter_link,
         "callback":function(error,result_chapter, $) {

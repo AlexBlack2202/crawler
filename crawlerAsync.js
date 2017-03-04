@@ -10,7 +10,7 @@ var configuration   = require('./configuration');
 
 
 function run(){
-    var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+    var connection = mysql.createConnection(configuration.MYSQL_STORY_CONFIG);
 
     connection.connect(function(error){
         if(error){
@@ -23,7 +23,7 @@ function run(){
 
     //get status pending to crawler
     connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND ' +
-        'link="http://webtruyen.com/giao-dich-danh-mat-trai-tim-cua-trum-xa-hoi-den/"', function(err, rows) {
+        'link="http://webtruyen.com/de-ton/"', function(err, rows) {
         // connected! (unless `err` is set)
         if(err){
             console.error("Get data error: ", err.stack);
@@ -86,7 +86,7 @@ function run(){
 }
 
 function getData(row, page, table, totalPage){
-    var conn = mysql.createConnection(configuration.MYSQL_CONFIG);
+    var conn = mysql.createConnection(configuration.MYSQL_STORY_CONFIG);
 
     var c = new Crawler({
         'maxConnections':10,
@@ -152,7 +152,8 @@ function getData(row, page, table, totalPage){
             pageList = [];
 
             for(var i=1;i<=totalPage;i++){
-                pageList[i] = {
+
+                pageList.push({
                     'totalPage'     :totalPage,
                     'story_id'      : row.id,
                     'story_name'    : row.title,
@@ -162,12 +163,12 @@ function getData(row, page, table, totalPage){
                     'url'           : row.link+i,
                     'update_unixtime' : parseInt(new Date().getTime()/1000)
 
-                };
+                });
             }
 
-            console.log(pageList);
+            console.log('Array:',pageList);
             async.each(pageList, function(pageInfo, cbPage){
-                webtruyen.crawlerPage(pageInfo);
+                webtruyen.crawlerPage(pageInfo,cbPage);
 
             }, function(errPage){
                 console.log('Finished page');

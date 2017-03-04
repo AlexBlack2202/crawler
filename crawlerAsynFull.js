@@ -23,7 +23,7 @@ function run(){
 
     //get status pending to crawler
     connection.query('SELECT * from story WHERE category_slug !="truyen-ngan" AND ' +
-        'link="http://truyenfull.vn/gap-em-noi-tan-cung-the-gioi/"', function(err, rows) {
+        'link="http://truyenfull.vn/nhan-thuat-tra-tron-di-gioi/"', function(err, rows) {
         // connected! (unless `err` is set)
 
         if(err){

@@ -33,7 +33,8 @@ function crawlerPage(pageInfo){
         pageInfo.link =pageInfo.link+'trang-'+(pageInfo.current_page);
     }
     c.queue([{
-        'uri':pageInfo.link,
+        //'uri':pageInfo.link,
+        'uri':'http://truyenfull.vn/the-loai/nguoc/hoan/',
         'callback':function(error,result,$){
 
             //lay ra tong so trang
@@ -45,7 +46,7 @@ function crawlerPage(pageInfo){
 
                 link = $(div).find('a').eq(0).attr('href');
                 name = $(div).find('.truyen-title a').text();
-                hot = 0;
+                hot = 17;
                 status = 'Đang ra';
                 if($(div).find('.label-title').hasClass('label-hot')){
                     hot = 1;
@@ -81,14 +82,14 @@ function crawlerPage(pageInfo){
                         if(index== (totalStory-1)){
                             setTimeout(function(){
                                 console.log('ket thuc sau 30 giay het trang ',pageInfo.current_page);
-                                //run(pageInfo.current_page+1);
+                                run(pageInfo.current_page+1);
                             },30000);
                         }
                     }
                 });
                 trData.img_xs = $(div).find('img.visible-xs-block').attr('src');
                 trData.img_sm = $(div).find('img.visible-sm-block').attr('src');
-                crawlerImage(trData);
+                //crawlerImage(trData);
             });
 
         }
@@ -149,15 +150,15 @@ function run(current_page){
             current_page:current_page,
             total_page:105
         };
-
-        var total = row.current_page + configuration.NUMBER_OF_STORY;
+        crawlerPage(row);
+        /*var total = row.current_page + configuration.NUMBER_OF_STORY;
         if(total>row.total_page){
             total = row.total_page+1;
         }
         for(var s=row.current_page;s<total;s++){
             row.current_page = s;
             crawlerPage(row);
-        }
+        }*/
     }catch(e){
         console.log(e);
     }

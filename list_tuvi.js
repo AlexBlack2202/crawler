@@ -39,19 +39,19 @@ function crawlerPage(pageInfo){
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            var totalStory = $('.f-news-tl li').length;
+            var totalStory = $('.main_left_content .article').length;
 
-            $('.f-news-tl li').each(function(index,div){
+            $('.main_left_content .article').each(function(index,div){
 
-                link = 'http://vuonhoaphatgiao.com/'+$(div).find('a').eq(1).attr('href');
-                name = $(div).find('a').eq(1).text().trim();
+                link = $(div).find('h5 a').eq(0).attr('href');
+                name = $(div).find('h5 a').eq(0).text().trim();
                 hot = 18;
                 status = 'Full';
                 trData = {
                     'category_name'    : pageInfo.category_name,
                     'category_id'       : pageInfo.id,
                     'category_slug'  : pageInfo.category_slug,
-                    'author':'Phật Giáo',
+                    'author':'Tử Vi',
                     'story_name':  name ,
                     'story_slug': slug(name),
                     'link': link,
@@ -133,11 +133,11 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://vuonhoaphatgiao.com/goc-suy-ngam/trang/'+current_page+'/',
+            link:'http://huyenhoc.vn/xem-boi/page/'+current_page,
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Góc Suy Ngẫm',
-            category_slug: 'goc-suy-ngam',
-            id:37,
+            category_name: 'Xem Boi',
+            category_slug: 'xem-boi',
+            id:39,
             current_page:current_page,
             total_page:105
         };
@@ -215,7 +215,8 @@ function crawlerChapter(chapterInfo) {
 async.each(category,function(info,cb){
     crawlerPage(info);
 });*/
-for(var i =1;i<=40;i++) {
+for(var i =0;i<=30;i=i+10) {
+    //console.log(i);
     run(i);
 }
 exports.crawlerPage = crawlerPage;

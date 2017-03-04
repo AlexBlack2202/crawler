@@ -30,8 +30,8 @@ function crawlerPage(pageInfo){
     });
     console.log(pageInfo);
     /*if(pageInfo.current_page!=1){
-        pageInfo.link =pageInfo.link+'trang-'+(pageInfo.current_page);
-    }*/
+     pageInfo.link =pageInfo.link+'trang-'+(pageInfo.current_page);
+     }*/
     c.queue([{
         'uri':pageInfo.link,
         'callback':function(error,result,$){
@@ -39,19 +39,19 @@ function crawlerPage(pageInfo){
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            var totalStory = $('.f-news-tl li').length;
+            var totalStory = $('#content .post').length;
 
-            $('.f-news-tl li').each(function(index,div){
+            $('#content .post').each(function(index,div){
 
-                link = 'http://vuonhoaphatgiao.com/'+$(div).find('a').eq(1).attr('href');
-                name = $(div).find('a').eq(1).text().trim();
+                link = $(div).find('a').eq(0).attr('href');
+                name = $(div).find('a').eq(0).text().trim();
                 hot = 18;
                 status = 'Full';
                 trData = {
                     'category_name'    : pageInfo.category_name,
                     'category_id'       : pageInfo.id,
                     'category_slug'  : pageInfo.category_slug,
-                    'author':'Phật Giáo',
+                    'author':'Văn khấn cúng',
                     'story_name':  name ,
                     'story_slug': slug(name),
                     'link': link,
@@ -133,23 +133,23 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://vuonhoaphatgiao.com/goc-suy-ngam/trang/'+current_page+'/',
+            link:'http://www.baikhancung.com/page/'+current_page,
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Góc Suy Ngẫm',
-            category_slug: 'goc-suy-ngam',
-            id:37,
+            category_name: 'Bài khấn cúng',
+            category_slug: 'bai-khan-cung',
+            id:35,
             current_page:current_page,
             total_page:105
         };
         crawlerPage(row);
         /*var total = row.current_page + configuration.NUMBER_OF_STORY;
-        if(total>row.total_page){
-            total = row.total_page+1;
-        }
-        for(var s=row.current_page;s<total;s++){
-            row.current_page = s;
-            crawlerPage(row);
-        }*/
+         if(total>row.total_page){
+         total = row.total_page+1;
+         }
+         for(var s=row.current_page;s<total;s++){
+         row.current_page = s;
+         crawlerPage(row);
+         }*/
     }catch(e){
         console.log(e);
     }
@@ -190,13 +190,13 @@ function crawlerChapter(chapterInfo) {
 
 
                 /*if(chapterInfo.chapter_number == (totalPage-1)){
-                    console.log('Het rui dong ket noi cuoi cung');
-                    //connection.end();
+                 console.log('Het rui dong ket noi cuoi cung');
+                 //connection.end();
 
-                    setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
-                    //setTimeout(process.run, 30000);
+                 setTimeout(function(){console.log('ket thuc sau 30 giay');},30000);
+                 //setTimeout(process.run, 30000);
 
-                }*/
+                 }*/
             });
         }
 
@@ -204,18 +204,18 @@ function crawlerChapter(chapterInfo) {
 }
 
 /*var category  = [
-    {
-    'url': 'http://truyenfull.vn/the-loai/tien-hiep/trang-1/',
-    'category_name':'Tiên Hiệp',
-    'category_slug':'tien-hiep',
-    'story_slug': 'tien-hiep',
-    'page':1,
-    }
-];
-async.each(category,function(info,cb){
-    crawlerPage(info);
-});*/
-for(var i =1;i<=40;i++) {
+ {
+ 'url': 'http://truyenfull.vn/the-loai/tien-hiep/trang-1/',
+ 'category_name':'Tiên Hiệp',
+ 'category_slug':'tien-hiep',
+ 'story_slug': 'tien-hiep',
+ 'page':1,
+ }
+ ];
+ async.each(category,function(info,cb){
+ crawlerPage(info);
+ });*/
+for(var i =1;i<=11;i++) {
     run(i);
 }
 exports.crawlerPage = crawlerPage;

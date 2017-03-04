@@ -65,17 +65,20 @@ function getData(row, connection, table, cb,totalPage){
     if(totalPage==='undefined'){
         totalPage = 0;
     }
-    console.log(row.link);
 
     c.queue([{
         'uri':row.link,
         'callback':function(error,result,$){
             //lay ra tong so trang
             reg = /[\d]+$/;
-            var content = $('.f-detail').html();
+            var content = $('.show_article_main').html();
+            if(content==null){
+                content = '<h3>Cảm ơn bạn đã ủng hộ xem tử vi 2017, nội dung bài viết đang được cập nhật, bạn vui lòng thử lại sau.</h3>/<p>Chúc các bạn luôn vui vẻ hạnh phúc</p>'
+            }
+            content = content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">');
             //thong tin tung trang
             var pageInfo  = {
-                content: '<h3>'+$('.tt-detail').html()+'</h3><div>'+content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">')+'</div>',
+                content: content,
                 'chapter_number'    : 0,
                 'chapter_name'       : row.story_name,
                 'chapter_slug'  : row.story_slug,

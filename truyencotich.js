@@ -26,6 +26,7 @@ function detail(info,connection,cb){
                 'chapter_slug'  :slug(info.title),
                 'link':info.link,
                 'content'       : content,
+                'category_id':2
             };
             insertSQL = 'INSERT INTO truyen_co_tich  SET ?';
             connection.query(insertSQL,insertData,function(err,resultInsert) {
@@ -87,9 +88,9 @@ function page(url,callback){
     }]);
 }
 
-var dataPage = ['http://truyencotich.dongthoigian.org/category/truyen-co-tich-viet-nam'];
-for(var i=2; i<=20;i++){
-    dataPage.push('http://truyencotich.dongthoigian.org/category/truyen-co-tich-viet-nam/page/'+i);
+var dataPage = ['http://truyencotich.dongthoigian.org/category/truyen-co-andersen'];
+for(var i=2; i<=2;i++){
+    dataPage.push('http://truyencotich.dongthoigian.org/category/truyen-co-andersen/page/'+i);
 }
 async.each(
     dataPage,

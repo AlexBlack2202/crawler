@@ -3,7 +3,7 @@ var mysql           = require('mysql');
 var slug            = require('slug');
 var async           = require('async');
 var configuration   = require('./configuration');
-var category = {id:2,name:'Romance'};
+var category = {id:3,name:'Action'};
 function listStory(link){
     var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
     var c = new Crawler({
@@ -135,12 +135,14 @@ function getDetail(connection,info,cbPage){
     c.queue([{
         'uri': info.chapter_link,
         'callback': function (error, result, $) {
+            var content = $('#rescontent').html();
+
             var chapter = {
                 story_id:info.story_id,
                 story_name:info.story_name,
                 chapter_number: info.chapter_number,
                 chapter_name : info.chapter_name,
-                content:$('#rescontent').html()
+                content:content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">')
             };
 
             insertSQL = 'INSERT INTO quotev_chapter SET ?';
@@ -161,8 +163,8 @@ function getDetail(connection,info,cbPage){
 /**
  * lay ra danh sach truyen
  */
-/*for(var i=0;i<59;i++) {
-    listStory('https://www.quotev.com/stories/c/Romance?v=rating&page='+i);
+/*for(var i=1;i<59;i++) {
+    listStory('https://www.quotev.com/stories/c/Action?v=rating&page='+i);
 }*/
 
 /**

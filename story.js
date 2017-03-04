@@ -4,7 +4,7 @@ var slug            = require('slug');
 var async           = require('async');
 var configuration   = require('./configuration');
 
-var connection = mysql.createConnection(configuration.MYSQL_CONFIG);
+var connection = mysql.createConnection(configuration.MYSQL_HOST_CONFIG);
 function listStory(link){
     var c = new Crawler({
         'maxConnections':10,
@@ -46,7 +46,7 @@ function getDetail(link){
             story.chapter = $(content).find('h2 a').text();
             story.content = $(content).find('p').html();
 
-            console.log(story);
+            //console.log(story);
             insertSQL = 'INSERT INTO chapter SET ?';
 
             connection.query(insertSQL,story,function(err,resultInsert) {
@@ -60,4 +60,8 @@ function getDetail(link){
     }]);
 }
 
-listStory('http://www.loverofdarkness.net/stories/sort/rated');
+//var url = 'http://www.loverofdarkness.net/stories/sort/rated';
+var url = 'http://www.loverofsadness.net/show_story.php';
+for(var i=1;i<=98;i++) {
+    listStory(url+'?page='+i);
+}
