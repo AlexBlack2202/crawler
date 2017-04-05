@@ -2,6 +2,7 @@
  * Created by tienn2t on 4/2/15.
  */
 var Crawler = require('crawler');
+var jsdom = require("jsdom");
 var mysql   = require('mysql');
 var slug    = require('slug');
 var fs      = require('fs');
@@ -71,7 +72,46 @@ function crawlerPage(pageInfo,cbPage){
 }
 
 function crawlerChapter(chapterInfo,cbChapter) {
-    var c = new Crawler({
+    /** crawler by json */
+
+    jsdom.env(
+        chapterInfo.chapter_link,
+        ["http://code.jquery.com/jquery.js"],
+        function (err, window) {
+            //console.log("there have been", window.$("a").length - 4, "io.js releases!");
+            var $ = window.$;
+            var content = $('div.chapter-c').html();
+            if(content !=null){
+                content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">');
+            }
+            insertData = {
+                'chapter_number'    : chapterInfo.chapter_number,
+                'chapter_name'       : chapterInfo.chapter_name,
+                'chapter_slug'  : chapterInfo.chapter_slug,
+                'story_id'  : chapterInfo.story_id,
+                'story_slug': chapterInfo.story_slug,
+                'story_name'    : chapterInfo.story_name,
+                'content'       : content,
+            };
+            insertSQL = 'INSERT INTO '+chapterInfo.table+' SET ? ON DUPLICATE KEY UPDATE content = ?';
+
+            connection.query(insertSQL,[insertData,content],function(err,resultInsert){
+                if(err){
+                    console.log('Error insert chapter table', err);
+                    //process.kill(1);
+                    //return;
+                }
+
+                console.log('Success insert chapter: ',chapterInfo.chapter_number,' - ', chapterInfo.chapter_name,
+                    'processing index:',chapterInfo.chapter_number);
+                cbChapter();
+            });
+        }
+    );
+
+    /** end crawler jsdowm */
+
+    /*var c = new Crawler({
         'maxConnections': 10,
         'forceUTF8': true,
         'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
@@ -104,7 +144,7 @@ function crawlerChapter(chapterInfo,cbChapter) {
                     'processing index:',chapterInfo.chapter_number);
                 cbChapter();
 
-                /*console.log('TOTAL:',totalPage);
+                /!*console.log('TOTAL:',totalPage);
                 if(chapterInfo.chapter_number == (totalPage-1)){
                      console.log('Het rui dong ket noi cuoi cung');
                      //connection.end();
@@ -113,11 +153,11 @@ function crawlerChapter(chapterInfo,cbChapter) {
                          console.log('ket thuc sau 30 giay');
                          process.run();
                      },30000);
-                 }*/
+                 }*!/
             });
         }
 
-    }]);
+    }]);*/
 }
 
 /*var chapters = [];
