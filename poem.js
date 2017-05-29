@@ -41,7 +41,7 @@ function crawlerPage(pageInfo,cbPage){
                 var link = $(a).attr('href');
                 data.push({
                     'slug': slug(name),
-                    'name'    : name,
+                    'name'    : name.replace(/\elle/gi, 'Bí quyết sống'),
                     'link':link,
                 });
             });
@@ -84,6 +84,8 @@ function insert(data,cb){
             var content = $(body).html();
             if(content) {
                 content = content.replace(/\<a[^>]+\>/g, '<a href="javascript:void(0);">');
+                content = content.replace(/\<img[^>]+\>/g, '<p></p>');
+                content = content.replace(/\elle/gi, 'Bí quyết sống');
                 data.content = content;
                 var insertSQL = 'INSERT INTO life_style SET ? ';
 
@@ -108,7 +110,7 @@ function insert(data,cb){
 
 
 var chapters = [];
-var i = 3;
+var i = 1;
 function run() {
     chapters = [];
     console.log('RUNN '+i);

@@ -4,7 +4,9 @@
 var Crawler = require('crawler');
 var mysql   = require('mysql');
 var slug    = require('slug');
-var fs      = require('fs');
+var fs = require('fs');
+var jquery = fs.readFileSync("jquery-1.12.1.min.js", "utf-8");
+var jsdom = require("jsdom");
 var async   = require('async');
 var configuration   = require('./configuration');
 var process = require('./crawlerAsyncTest');
@@ -22,31 +24,26 @@ var trData = [];
 var totalPage = 0;
 
 function crawlerPage(pageInfo){
-    var c = new Crawler({
-        'maxConnections':10,
-        'forceUTF8': true,
-        'userAgent': 'Mozilla/5.0 (X11; Linux i686 (x86_64)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
-        'callback':function(error,result,$){}
-    });
     console.log(pageInfo);
     if(pageInfo.current_page!=1){
         pageInfo.link =pageInfo.link+'trang-'+(pageInfo.current_page);
     }
-    c.queue([{
-        //'uri':pageInfo.link,
-        'uri':'http://truyenfull.vn/the-loai/nguoc/hoan/',
-        'callback':function(error,result,$){
 
-            //lay ra tong so trang
+    jsdom.env({
+        url: pageInfo.link,
+        src: [jquery],
+        done: function (err, window) {
+            //console.log("there have been", window.$("a").length - 4, "io.js releases!");
+            var $ = window.$;
             reg = /[\d]+$/;
 
-            var totalStory = $('.col-truyen-main div.list-truyen .row').length;
+            var totalStory = $('.col-truyen-main .list-truyen .row').length;
 
             $('.col-truyen-main div.list-truyen .row').each(function(index,div){
 
                 link = $(div).find('a').eq(0).attr('href');
                 name = $(div).find('.truyen-title a').text();
-                hot = 17;
+                hot = pageInfo.hot;
                 status = 'Đang ra';
                 if($(div).find('.label-title').hasClass('label-hot')){
                     hot = 1;
@@ -68,6 +65,7 @@ function crawlerPage(pageInfo){
 
                 updateData = {
                     hot:hot,
+                    is_crawler:0
                     //sorder:index+(pageInfo.current_page-1)*totalStory+1, //khi nao chay cho hot thi moi update sorder
                     //status:status
                 }
@@ -93,7 +91,7 @@ function crawlerPage(pageInfo){
             });
 
         }
-    }]);
+    });
 }
 
 /**
@@ -142,13 +140,14 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://truyenfull.vn/danh-sach/truyen-moi/',
+            link:'http://truyenfull.vn/the-loai/tien-hiep/hoan/',
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Truyện Mới',
-            category_slug: 'truyen-moi',
-            id:30,
+            category_name: 'Truyện Tiên Hiệp',
+            category_slug: 'tien-hiep',
+            id:1,
+            hot:54,
             current_page:current_page,
-            total_page:105
+            total_page:10
         };
         crawlerPage(row);
         /*var total = row.current_page + configuration.NUMBER_OF_STORY;
@@ -184,6 +183,7 @@ function crawlerChapter(chapterInfo) {
                 'story_slug': chapterInfo.story_slug,
                 'story_name'    : chapterInfo.story_name,
                 'content'       : content,
+                'hot': 21
             };
             insertSQL = 'INSERT INTO '+chapterInfo.table+' SET ?';
 

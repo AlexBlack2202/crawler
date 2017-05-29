@@ -133,11 +133,11 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://vuonhoaphatgiao.com/goc-suy-ngam/trang/'+current_page+'/',
+            link:'http://vuonhoaphatgiao.com/tu-vien/trang/'+current_page+'/',
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Góc Suy Ngẫm',
-            category_slug: 'goc-suy-ngam',
-            id:37,
+            category_name: 'Tự Viện',
+            category_slug: 'tu-vien',
+            id:40,
             current_page:current_page,
             total_page:105
         };
@@ -215,7 +215,7 @@ function crawlerChapter(chapterInfo) {
 async.each(category,function(info,cb){
     crawlerPage(info);
 });*/
-for(var i =1;i<=40;i++) {
+for(var i =1;i<=41;i++) {
     run(i);
 }
 exports.crawlerPage = crawlerPage;

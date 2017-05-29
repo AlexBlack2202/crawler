@@ -1,7 +1,10 @@
 /**
  * Created by tienn2t on 3/31/15.
  */
+'use strict';
 var Crawler         = require('crawler');
+var fs = require('fs');
+var jquery = fs.readFileSync("jquery-1.12.1.min.js", "utf-8");
 var jsdom = require("jsdom");
 var mysql           = require('mysql');
 var slug            = require('slug');
@@ -25,7 +28,7 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 order by id  DESC LIMIT 1';
+    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 order by id  ASC LIMIT 1';
     console.log(query);
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
@@ -41,9 +44,9 @@ function run(){
         }
         async.each(rows, function(row,cb){
             console.log(row.link);
-            page = row.page;
-            title = row.story_slug;
-            table = 'chapter_'+row.story_slug.substr(0,2);
+            var page = row.page;
+            var title = row.story_slug;
+            var table = 'chapter_'+row.story_slug.substr(0,2);
 
             console.log(table+"-"+page);
 
@@ -52,7 +55,7 @@ function run(){
                 console.log('tim ',results);
                 getStoryInfo(row);
                 if(results[0].is_table==0){
-                    createTable = "CREATE TABLE IF NOT EXISTS "+'chapter_'+row.story_slug.substr(0,2)+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
+                    var createTable = "CREATE TABLE IF NOT EXISTS "+'chapter_'+row.story_slug.substr(0,2)+" (id int(11) NOT NULL AUTO_INCREMENT,story_slug TEXT NOT NULL," +
                         "story_id int(11) NOT NULL,chapter_name text NOT NULL, " +
                         "`time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, story_name text NOT NULL,chapter_number int(11) NOT NULL, link text NOT NULL, " +
                         "content longtext NOT NULL, chapter_slug text NOT NULL, PRIMARY KEY (id),UNIQUE KEY `id_box_elements` (`story_id`,`chapter_number`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8";
@@ -94,28 +97,28 @@ function getStoryInfo(obj){
         }
         console.log('Connected mysql db');
     });
-    jsdom.env(
-        obj.link,
-        ["http://code.jquery.com/jquery.js"],
-        function (err, window) {
+    jsdom.env({
+        url: obj.link,
+        src: [jquery],
+        done: function (err, window) {
             //console.log("there have been", window.$("a").length - 4, "io.js releases!");
             var $ = window.$;
             //lay ra tong so trang
-            reg = /[\d]+$/;
+            var reg = /[\d]+$/;
 
-            $('.col-truyen-main').each(function(index,div){
+            $('.col-truyen-main').each(function (index, div) {
                 var infoHolder = $(div).find('.info-holder');
                 var image = infoHolder.find('.book img').attr('src');
-                var request = http.get(image, function(res) {
+                var request = http.get(image, function (res) {
                     var imagedata = '';
                     res.setEncoding('binary');
 
-                    res.on('data', function(chunk){
+                    res.on('data', function (chunk) {
                         imagedata += chunk
                     });
 
-                    res.on('end', function(){
-                        fs.writeFile(obj.category_slug+'/'+obj.story_slug+'-md.jpg', imagedata, 'binary', function(err){
+                    res.on('end', function () {
+                        fs.writeFile(obj.category_slug + '/' + obj.story_slug + '-md.jpg', imagedata, 'binary', function (err) {
                             if (err) throw err;
                             console.log('File saved.');
                         })
@@ -125,56 +128,127 @@ function getStoryInfo(obj){
                 var src = infoHolder.find('.info .source').text();
                 var lastestChapter = $(div).find('.l-chapter .l-chapters li').eq(0).text();
                 var status = '';
-                infoHolder.find('.info div span').each(function(i,span){
+                infoHolder.find('.info div span').each(function (i, span) {
                     status = $(span).text();
                 });
 
                 var description = $(div).find('.desc-text').html();
 
 
-                trData = {
-                    'source'       : src,
-                    'status'       : status,
-                    'description'       : description,
-                    'page':total_page,
-                    'lastest_chapter':lastestChapter,
-                    'is_crawler':1,
-                    'update_story':1
+                var trData = {
+                    'source': src,
+                    'status': status,
+                    'description': description,
+                    'page': total_page,
+                    'lastest_chapter': lastestChapter,
+                    'is_crawler': 1,
+                    'update_story': 1
                 };
                 //console.log(trData);
-                updateSQL = 'UPDATE story SET ? WHERE ?';
-                connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
+                var updateSQL = 'UPDATE story SET ? WHERE ?';
+                connection.query(updateSQL, [trData, {id: obj.id}], function (err, resultInsert) {
                     if (err) {
                         console.log('Update lan 1 ERROR', err);
                         trData = {
-                            'is_crawler':1
+                            'is_crawler': 1
                         };
-                        connection.query(updateSQL, [trData,{id:obj.id}], function (err, resultInsert) {
+                        connection.query(updateSQL, [trData, {id: obj.id}], function (err, resultInsert) {
                             if (err) {
                                 console.log('Update lan 2 table ERROR', err);
                                 trData = {
-                                    'is_crawler':1
+                                    'is_crawler': 1
                                 };
 
-                            }else{
+                            } else {
                                 console.log('Update lan 2  success');
                                 //run();
                             }
                             connection.end();
                         });
 
-                    }else{
+                    } else {
                         console.log('Update success insert table');
                         connection.end();
                     }
                 });
             });
         }
-    );
+    });
 }
 
 function getData(row, page, table, cb,totalPage){
+	jsdom.env({
+        url: row.link,
+        src: [jquery],
+        done: function (err, window) {
+            //console.log("there have been", window.$("a").length - 4, "io.js releases!");
+            var $ = window.$;
+			var reg = /[\d]+$/;
+            totalPage = parseInt($('#total-page').attr('value'));
 
+			/*
+            //thong tin tung trang
+            var pageList = [];
+
+            for(var i=page;i<=totalPage;i++){
+                var pageInfo  = {
+                    'url': row.link+'trang-'+i+'/#list-chapter',
+                    'story_id': row.id,
+                    'story_name':row.story_name,
+                    'story_slug': row.story_slug,
+                    'page':i,
+                    'totalPage':totalPage,
+                    'table':table
+                };
+                pageList.push(pageInfo);
+            }
+
+            console.log(pageList);
+            async.each(pageList, function(pageInfo, cbPage){
+                truyenfull.crawlerPage(pageInfo,cbPage);
+
+            }, function(errPage){
+                console.log('Finished page');
+				
+                cb();
+            });
+			*/
+			
+			var i = page;
+			function _run(){
+				if(i<=totalPage){
+					var pageList = [];
+					var pageInfo  = {
+						'url': row.link+'trang-'+i+'/#list-chapter',
+						'story_id': row.id,
+						'story_name':row.story_name,
+						'story_slug': row.story_slug,
+						'page':i,
+						'totalPage':totalPage,
+						'table':table
+					};
+					pageList.push(pageInfo);
+					async.each(pageList, function(pageInfo, cbPage){
+						truyenfull.crawlerPage(pageInfo,cbPage);
+
+					}, function(errPage){
+						console.log('Finished page ',i);
+						i++;
+						_run();
+					});
+				}else{
+					cb();
+				}
+			}
+			
+			_run();
+		}
+	});
+	/** end jsdom */
+	
+	
+
+	/*
     var c = new Crawler({
         'maxConnections':10,
         'forceUTF8': true,
@@ -192,11 +266,11 @@ function getData(row, page, table, cb,totalPage){
         'uri':row.link,
         'callback':function(error,result,$){
             //lay ra tong so trang
-            reg = /[\d]+$/;
+            var reg = /[\d]+$/;
             totalPage = parseInt($('#total-page').attr('value'));
 
             //thong tin tung trang
-            pageList = [];
+            var pageList = [];
 
             for(var i=page;i<=totalPage;i++){
                 var pageInfo  = {
@@ -221,6 +295,7 @@ function getData(row, page, table, cb,totalPage){
             });
         }
     }]);
+	*/
 }
 
 const args = process.argv;

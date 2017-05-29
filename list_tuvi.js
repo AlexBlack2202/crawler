@@ -39,19 +39,27 @@ function crawlerPage(pageInfo){
             //lay ra tong so trang
             reg = /[\d]+$/;
 
-            var totalStory = $('.main_left_content .article').length;
+            //var cls = 'content-items'; //xemtuvi.com
+            //var cls = 'main_left_content .article'; //http://huyenhoc.vn/
 
-            $('.main_left_content .article').each(function(index,div){
+
+            //var totalStory = $('.main_left_content .article').length;
+            var totalStory = $('.content-items .content-item').length;
+
+            /*$('.main_left_content .article').each(function(index,div){
 
                 link = $(div).find('h5 a').eq(0).attr('href');
-                name = $(div).find('h5 a').eq(0).text().trim();
+                name = $(div).find('h5 a').eq(0).text().trim();*/
+            $('.content-items .content-item').each(function(index,div){
+                link = 'http://tuvisomenh.com'+$(div).find('header a').eq(0).attr('href');
+                name = $(div).find('header a').eq(0).text().trim();
                 hot = 18;
                 status = 'Full';
                 trData = {
                     'category_name'    : pageInfo.category_name,
                     'category_id'       : pageInfo.id,
                     'category_slug'  : pageInfo.category_slug,
-                    'author':'Tử Vi',
+                    'author':'Xem boi',
                     'story_name':  name ,
                     'story_slug': slug(name),
                     'link': link,
@@ -133,8 +141,8 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://huyenhoc.vn/xem-boi/page/'+current_page,
-            //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
+            //link:'http://huyenhoc.vn/xem-boi/page/'+current_page,
+            link:'http://tuvisomenh.com/xem-boi/xem-boi-tuong-mat?page='+current_page,
             category_name: 'Xem Boi',
             category_slug: 'xem-boi',
             id:39,
@@ -215,7 +223,7 @@ function crawlerChapter(chapterInfo) {
 async.each(category,function(info,cb){
     crawlerPage(info);
 });*/
-for(var i =0;i<=30;i=i+10) {
+for(var i =1;i<=6;i++) {
     //console.log(i);
     run(i);
 }

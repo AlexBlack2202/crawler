@@ -5,7 +5,7 @@
 var MYSQL_CONFIG = {
     host     : 'localhost',
     user     : 'root',
-    password : 'root',
+    password : '',
     database : 'nhenhang',
     'charset': 'utf8_general_ci'
 };

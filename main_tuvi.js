@@ -71,48 +71,19 @@ function getData(row, connection, table, cb,totalPage){
         'callback':function(error,result,$){
             //lay ra tong so trang
             reg = /[\d]+$/;
-            var content = $('.show_article_main').html();
+            //var content = $('.show_article_main').html();
+            var content = $('.blog-post-body').html();
             if(content==null){
-                content = '<h3>Cảm ơn bạn đã ủng hộ xem tử vi 2017, nội dung bài viết đang được cập nhật, bạn vui lòng thử lại sau.</h3>/<p>Chúc các bạn luôn vui vẻ hạnh phúc</p>'
-            }
-            content = content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">');
-            //thong tin tung trang
-            var pageInfo  = {
-                content: content,
-                'chapter_number'    : 0,
-                'chapter_name'       : row.story_name,
-                'chapter_slug'  : row.story_slug,
-                'story_id'  : row.id,
-                'story_slug': row.story_slug,
-                'story_name'    : row.story_name
-
-            };
-
-            var insertSQL = 'INSERT INTO '+table+' SET ?';
-
-            connection.query(insertSQL,pageInfo,function(err,resultInsert){
-                if(err){
-                    console.log('Error insert chapter table', err);
-                    //process.kill(1);
-                    //return;
-                }
-
-                console.log('Success insert chapter: ');
-                var trData = {
-                    'is_crawler':1,
-                    'update_story':1
-                };
-                //console.log(trData);
-                var updateSQL = 'UPDATE story SET ? WHERE ?';
-                connection.query(updateSQL, [trData,{id:row.id}], function (err, resultInsert) {
+                var updateSQL = 'DELETE FROM story WHERE ?';
+                connection.query(updateSQL, [{id:row.id}], function (err, resultInsert) {
                     if (err) {
-                        console.log('Update lan 1 ERROR', err);
+                        console.log('delete lan 1 ERROR', err);
                         trData = {
                             'is_crawler':1
                         };
-                        connection.query(updateSQL, [trData,{id:row.id}], function (err, resultInsert) {
+                        connection.query(updateSQL, [{id:row.id}], function (err, resultInsert) {
                             if (err) {
-                                console.log('Update lan 2 table ERROR', err);
+                                console.log('delete lan 2 table ERROR', err);
                                 trData = {
                                     'is_crawler':1
                                 };
@@ -132,7 +103,68 @@ function getData(row, connection, table, cb,totalPage){
                     }
                 });
 
-            });
+            }else{
+                content = content.replace(/\<a[^>]+\>/g,'<a href="javascript:void(0);">');
+                //thong tin tung trang
+                var pageInfo  = {
+                    //content: content,
+                    content: content.replace(/\<ins[^>]+\>\<\/ins\>/g,'<a href="javascript:void(0);">'),
+                    'chapter_number'    : 0,
+                    'chapter_name'       : row.story_name,
+                    'chapter_slug'  : row.story_slug,
+                    'story_id'  : row.id,
+                    'story_slug': row.story_slug,
+                    'story_name'    : row.story_name
+
+                };
+
+                var insertSQL = 'INSERT INTO '+table+' SET ?';
+
+                connection.query(insertSQL,pageInfo,function(err,resultInsert){
+                    if(err){
+                        console.log('Error insert chapter table', err);
+                        //process.kill(1);
+                        //return;
+                    }
+
+                    console.log('Success insert chapter: ');
+                    var trData = {
+                        'is_crawler':1,
+                        'update_story':1
+                    };
+                    //console.log(trData);
+                    var updateSQL = 'UPDATE story SET ? WHERE ?';
+                    connection.query(updateSQL, [trData,{id:row.id}], function (err, resultInsert) {
+                        if (err) {
+                            console.log('Update lan 1 ERROR', err);
+                            trData = {
+                                'is_crawler':1
+                            };
+                            connection.query(updateSQL, [trData,{id:row.id}], function (err, resultInsert) {
+                                if (err) {
+                                    console.log('Update lan 2 table ERROR', err);
+                                    trData = {
+                                        'is_crawler':1
+                                    };
+
+                                }else{
+                                    console.log('Update lan 2  success');
+                                    //run();
+                                }
+
+                                cb();
+                            });
+
+                        }else{
+                            console.log('Update success insert table');
+
+                            cb();
+                        }
+                    });
+
+                });
+            }
+
 
         }
     }]);
