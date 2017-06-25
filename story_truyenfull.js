@@ -37,12 +37,12 @@ function crawlerPage(pageInfo){
             var $ = window.$;
             reg = /[\d]+$/;
 
-            var totalStory = $('.col-truyen-main .list-truyen .row').length;
+            var totalStory = $('.col-truyen-side .list-truyen .top-item').length;
 
-            $('.col-truyen-main div.list-truyen .row').each(function(index,div){
+            $('.col-truyen-side div.list-truyen .top-item').each(function(index,div){
 
                 link = $(div).find('a').eq(0).attr('href');
-                name = $(div).find('.truyen-title a').text();
+                name = $(div).find('a').eq(0).attr('title');
                 hot = pageInfo.hot;
                 status = 'Đang ra';
                 if($(div).find('.label-title').hasClass('label-hot')){
@@ -58,7 +58,7 @@ function crawlerPage(pageInfo){
                     'author':$(div).find('.author').text(),
                     'story_name':  name ,
                     'story_slug': slug(name),
-                    'link': $(div).find('.truyen-title a').attr('href'),
+                    'link': link,//$(div).find('.truyen-title a').attr('href'),
                     'hot':hot,
                     'status':status
                 };
@@ -82,7 +82,7 @@ function crawlerPage(pageInfo){
                         if(index== (totalStory-1)){
                             console.log('ket thuc sau 30 giay het trang ',pageInfo.current_page);
                             setTimeout(function(){
-                                run(pageInfo.current_page+1);
+                                //run(pageInfo.current_page+1);
                             },10000);
                         }
                     }
@@ -142,12 +142,12 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://truyenfull.vn/the-loai/do-thi/hoan/',
+            link:'http://truyenfull.vn/the-loai/xuyen-khong/',
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Truyện Đô Thị',
-            category_slug: 'do-thi',
-            id:4,
-            hot:58,
+            category_name: 'Truyện Xuyên Không',
+            category_slug: 'xuyen-khong',
+            id:13,
+            hot:63,
             current_page:current_page,
             total_page:10
         };

@@ -43,7 +43,7 @@ function run(){
             return;
         }
         async.each(rows, function(row,cb){
-            console.log(row.link);
+            console.log('HELLO ',row);
             var page = row.page;
             var title = row.story_slug;
             var table = 'chapter_'+row.story_slug.substr(0,2);
@@ -97,11 +97,11 @@ function getStoryInfo(obj){
         }
         console.log('Connected mysql db');
     });
+            console.log("link ",obj.link);
     jsdom.env({
         url: obj.link,
         src: [jquery],
         done: function (err, window) {
-            //console.log("there have been", window.$("a").length - 4, "io.js releases!");
             var $ = window.$;
             //lay ra tong so trang
             var reg = /[\d]+$/;
