@@ -28,7 +28,7 @@ function run(){
 
 
     //get status pending to crawler
-    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 order by id  ASC LIMIT 1';
+    var query = 'SELECT * from story WHERE  (is_crawler=0 or (status="Đang ra" AND update_story = 0)) AND id >0 and site=0 order by id  ASC LIMIT 1';
     console.log(query);
     connection.query(query, function(err, rows) {
         // connected! (unless `err` is set)
@@ -109,7 +109,7 @@ function getStoryInfo(obj){
             $('.col-truyen-main').each(function (index, div) {
                 var infoHolder = $(div).find('.info-holder');
                 var image = infoHolder.find('.book img').attr('src');
-                var request = http.get(image, function (res) {
+                /*var request = http.get(image, function (res) {
                     var imagedata = '';
                     res.setEncoding('binary');
 
@@ -123,7 +123,7 @@ function getStoryInfo(obj){
                             console.log('File saved.');
                         })
                     });
-                });
+                });*/
                 var total_page = parseInt($('#total-page').attr('value'));
                 var src = infoHolder.find('.info .source').text();
                 var lastestChapter = $(div).find('.l-chapter .l-chapters li').eq(0).text();

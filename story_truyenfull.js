@@ -142,12 +142,12 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://truyenfull.vn/the-loai/xuyen-khong/',
+            link:'http://truyenfull.vn/the-loai/mat-the/',
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Truyện Xuyên Không',
-            category_slug: 'xuyen-khong',
-            id:13,
-            hot:63,
+            category_name: 'Truyện Hài Hước',
+            category_slug: 'hai-huoc',
+            id:28,
+            hot:78,
             current_page:current_page,
             total_page:10
         };

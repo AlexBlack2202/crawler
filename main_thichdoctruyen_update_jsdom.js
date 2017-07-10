@@ -106,71 +106,59 @@ function getStoryInfo(obj){
             //lay ra tong so trang
             var reg = /[\d]+$/;
 
-            $('.col-truyen-main').each(function (index, div) {
-                var infoHolder = $(div).find('.info-holder');
-                var image = infoHolder.find('.book img').attr('src');
-                /*var request = http.get(image, function (res) {
-                    var imagedata = '';
-                    res.setEncoding('binary');
+            var total_page = $('.pphantrang .trangcurrent').text();
+            var s = total_page.split('/');
+            total_page = parseInt(s[1]);
+            console.log('total_page = '+total_page);
+            var src = 'thichdoctruyen';
+            var lastestChapter = '';//$(div).find('.l-chapter .l-chapters li').eq(0).text();
+            var status = '';
+            status = $('.pphantrang .truyenp1').eq(3).text();
+            if(status == 'Tình trạng: Còn Tiếp...'){
+                status = 'Đang ra';
+            }else{
+                status = 'Full';
+            }
 
-                    res.on('data', function (chunk) {
-                        imagedata += chunk
-                    });
+            var description = $('#viewtomtat2').html();
+            description  = description.trim('\n');
+            description  = description.trim('\t');
 
-                    res.on('end', function () {
-                        fs.writeFile(obj.category_slug + '/' + obj.story_slug + '-md.jpg', imagedata, 'binary', function (err) {
-                            if (err) throw err;
-                            console.log('File saved.');
-                        })
-                    });
-                });*/
-                var total_page = parseInt($('#total-page').attr('value'));
-                var src = infoHolder.find('.info .source').text();
-                var lastestChapter = $(div).find('.l-chapter .l-chapters li').eq(0).text();
-                var status = '';
-                infoHolder.find('.info div span').each(function (i, span) {
-                    status = $(span).text();
-                });
+            var trData = {
+                'source': src,
+                'status': status,
+                'description': description,
+                'page': total_page,
+                'lastest_chapter': lastestChapter,
+                'is_crawler': 1,
+                'update_story': 1
+            };
+            //console.log(trData);
+            var updateSQL = 'UPDATE story SET ? WHERE ?';
+            connection.query(updateSQL, [trData, {id: obj.id}], function (err, resultInsert) {
+                if (err) {
+                    console.log('Update lan 1 ERROR', err);
+                    trData = {
+                        'is_crawler': 1
+                    };
+                    connection.query(updateSQL, [trData, {id: obj.id}], function (err, resultInsert) {
+                        if (err) {
+                            console.log('Update lan 2 table ERROR', err);
+                            trData = {
+                                'is_crawler': 1
+                            };
 
-                var description = $(div).find('.desc-text').html();
-
-
-                var trData = {
-                    'source': src,
-                    'status': status,
-                    'description': description,
-                    'page': total_page,
-                    'lastest_chapter': lastestChapter,
-                    'is_crawler': 1,
-                    'update_story': 1
-                };
-                //console.log(trData);
-                var updateSQL = 'UPDATE story SET ? WHERE ?';
-                connection.query(updateSQL, [trData, {id: obj.id}], function (err, resultInsert) {
-                    if (err) {
-                        console.log('Update lan 1 ERROR', err);
-                        trData = {
-                            'is_crawler': 1
-                        };
-                        connection.query(updateSQL, [trData, {id: obj.id}], function (err, resultInsert) {
-                            if (err) {
-                                console.log('Update lan 2 table ERROR', err);
-                                trData = {
-                                    'is_crawler': 1
-                                };
-
-                            } else {
-                                console.log('Update lan 2  success');
-                                //run();
-                            }
-                            connection.end();
-                        });
-
-                    } else {
-                        console.log('Update success insert table');
+                        } else {
+                            console.log('Update lan 2  success');
+                            //run();
+                        }
                         connection.end();
-                    }
-                });
+                    });
+
+                } else {
+                    console.log('Update success insert table');
+                    connection.end();
+                }
             });
         }
     });
@@ -184,42 +172,18 @@ function getData(row, page, table, cb,totalPage){
             //console.log("there have been", window.$("a").length - 4, "io.js releases!");
             var $ = window.$;
 			var reg = /[\d]+$/;
-            totalPage = parseInt($('#total-page').attr('value'));
+            var total_page = $('.pphantrang .trangcurrent').eq(0).text();
+            var s = total_page.split('/');
+            var totalPage = parseInt(s[1]);
 
-			/*
-            //thong tin tung trang
-            var pageList = [];
-
-            for(var i=page;i<=totalPage;i++){
-                var pageInfo  = {
-                    'url': row.link+'trang-'+i+'/#list-chapter',
-                    'story_id': row.id,
-                    'story_name':row.story_name,
-                    'story_slug': row.story_slug,
-                    'page':i,
-                    'totalPage':totalPage,
-                    'table':table
-                };
-                pageList.push(pageInfo);
-            }
-
-            console.log(pageList);
-            async.each(pageList, function(pageInfo, cbPage){
-                truyenfull.crawlerPage(pageInfo,cbPage);
-
-            }, function(errPage){
-                console.log('Finished page');
-				
-                cb();
-            });
-			*/
 			
 			var i = page;
+            console.log('TOTAL_PAGE = '+totalPage+' - i='+i);
 			function _run(){
 				if(i<=totalPage){
 					var pageList = [];
 					var pageInfo  = {
-						'url': row.link+'trang-'+i+'/#list-chapter',
+						'url': row.link+'/page'+i,
 						'story_id': row.id,
 						'story_name':row.story_name,
 						'story_slug': row.story_slug,

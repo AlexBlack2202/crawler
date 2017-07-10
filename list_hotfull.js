@@ -66,7 +66,7 @@ function crawlerPage(pageInfo){
                 updateData = {
                     hot:hot,
                     is_crawler:0,
-					page:1,
+					//page:1,
 					category_id:pageInfo.id
                     //sorder:index+(pageInfo.current_page-1)*totalStory+1, //khi nao chay cho hot thi moi update sorder
                     //status:status
@@ -142,12 +142,12 @@ function run(current_page){
             current_page = 1;
         }
         var row = {
-            link:'http://truyenfull.vn/the-loai/do-thi/hoan/',
+            link:'http://truyenfull.vn/the-loai/di-nang/',
             //link:'http://truyenfull.vn/danh-sach/truyen-hot/',
-            category_name: 'Truyện Đô Thị',
-            category_slug: 'do-thi',
-            id:4,
-            hot:58,
+            category_name: 'Truyện Dị Năng',
+            category_slug: 'di-nang',
+            id:10,
+            hot:1,
             current_page:current_page,
             total_page:10
         };
